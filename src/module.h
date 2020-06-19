@@ -35,8 +35,8 @@ class gGrid{
 public:
 	gGrid(int layer, int row, int col, int supply);
 
-	Pos get_pos() const {return _pos;}
-	int get_demand() const {return _demand;}
+	Pos get_pos() const;
+	int get_demand() const;
 
 	void add_supply(int val);
 	bool add_demand(int val);
@@ -49,24 +49,10 @@ class Layer{
 	int _supply;
 	vector<vector<gGrid>> _gGrid2d;
 public:
-	Layer(string name, int id, Direction dir, int supply, int num_rows, int num_cols):
-	_name(name),
-	_id(id),
-	_dir(dir),
-	_supply(supply)
-	{
-		_gGrid2d.clear();
-		for(int r = 0; r<num_rows; r++){
-			vector<gGrid> grid_row;
-			for(int c = 0; c<num_cols; c++){
-				grid_row.push_back(gGrid(id, r, c, supply));
-			}
-			_gGrid2d.push_back(grid_row);
-		}
-	}
+	Layer(string name, int id, Direction dir, int supply, int num_rows, int num_cols);
 
-	Direction get_dir() const {return _dir;}
-	gGrid& get_grid(int row, int col) {return _gGrid2d[row][col];}
+	Direction get_dir() const;
+	gGrid& get_grid(int row, int col);
 };
 
 class Chip{
@@ -80,23 +66,12 @@ class Chip{
 
 	Direction get_layer_dir(int layer_id){return layer_id % 2;}
 public:
-	Chip(int row_begin, int col_begin, int row_end, int col_end):
-	_row_begin_idx(row_begin),
-	_col_begin_idx(col_begin),
-	_num_rows(row_end - row_begin + 1),
-	_num_cols(col_end - col_begin + 1)
-	{
-		_layer_list.clear();
-	}
+	Chip(int row_begin, int col_begin, int row_end, int col_end);
 
-	int get_num_rows() const {return _num_rows;}
-	int get_num_cols() const {return _num_cols;}
+	int get_num_rows() const;
+	int get_num_cols() const;
 
-	void add_layer(string name, int supply){
-		int layer_id = _layer_list.size();
-		_layer_list.push_back(
-			Layer(name, layer_id, get_layer_dir(layer_id), supply, _num_rows, _num_cols));
-	}
+	void add_layer(string name, int supply);
 };
 
 class Pin{
@@ -104,15 +79,12 @@ class Pin{
 	int _id;
 	CellInstance *_cell;
 	int _layer_id;
+	vector<Net*> _net_list;
 public:
-	Pin(string name, int id, CellInstance *cell, int layer_id):
-	_name(name),
-	_id(id),
-	_cell(cell),
-	_layer_id(layer_id)
-	{}
+	Pin(string name, int id, CellInstance *cell, int layer_id);
 
-	Pos get_pos() const {return Pos(_layer_id, _cell->get_row(), _cell->get_col());}
+	Pos get_pos() const;
+	void add_net(Net *net);
 };
 
 class Blockage{
@@ -122,16 +94,10 @@ class Blockage{
 	int _layer_id;
 	int _demand; // only default demand
 public:
-	Blockage(string name, int id, CellInstance *cell, int layer_id, int demand):
-	_name(name),
-	_id(id),
-	_cell(cell),
-	_layer_id(layer_id),
-	_demand(demand)
-	{}
+	Blockage(string name, int id, CellInstance *cell, int layer_id, int demand);
 
-	Pos get_pos() const {return Pos(_layer_id, _cell->get_row(), _cell->get_col());}
-	int get_demand() const {return _demand;}
+	Pos get_pos() const;
+	int get_demand() const;
 };
 
 class MasterCell{
@@ -141,26 +107,16 @@ class MasterCell{
 	vector<Pin> _pin_list;
 	vector<Blockage> _blkg_list;
 public:
-	MasterCell(string name, int id):
-	_name(name),
-	_id(id)
-	{
-		_pin_list.clear();
-		_blkg_list.clear();
-	}
+	MasterCell(string name, int id);
 
-	string get_name() const {return _name;}
-	int get_id() const {return _id;}
-	vector<Pin>& get_pins() {return _pin_list;}
-	vector<Blockage>& get_blkgs() {return _blkg_list;}
+	string get_name() const;
+	int get_id() const;
+	vector<Pin>& get_pins();
+	vector<Blockage>& get_blkgs();
 
-	void set_id(int val) {_id = val;}
-	void add_pin(string name, int id, int layer_id){_pin_list.push_back(
-		Pin(name, id, nullptr, layer_id)
-	);}
-	void add_blkg(string name, int id, int layer_id, int demand){_blkg_list.push_back(
-		Blockage(name, id, nullptr, layer_id, demand)
-	);}
+	void set_id(int val);
+	void add_pin(string name, int id, int layer_id);
+	void add_blkg(string name, int id, int layer_id, int demand);
 };
 
 class CellInstance{
@@ -173,39 +129,16 @@ class CellInstance{
 	int _row;
 	int _col;
 public:
-	CellInstance(string name, int id, MasterCell master_cell, bool fixed):
-	_name(name),
-	_id(id),
-	_master_cell_id(master_cell.get_id()),
-	_fixed(fixed)
-	{
-		_pin_list.clear();
-		vector<Pin>& pins = master_cell.get_pins();
-		for(Pin &pin : pins){
-			Pin *new_pin = new Pin(pin);
-			_pin_list.push_back(new_pin);
-		}
+	CellInstance(string name, int id, MasterCell master_cell, bool fixed);
 
-		_blkg_list.clear();
-		vector<Blockage>& blkgs = master_cell.get_blkgs();
-		for(Blockage &blkg : blkgs){
-			Blockage *new_blkg = new Blockage(blkg);
-			_blkg_list.push_back(new_blkg);
-		}
-	}
+	string get_name() const;
+	int get_id() const;
+	bool is_fixed() const;
+	int get_row() const;
+	int get_col() const;
 
-	string get_name() const {return _name;}
-	int get_id() const {return _id;}
-	bool is_fixed() const {return _fixed;}
-	int get_row() const {return _row;}
-	int get_col() const {return _col;}
-
-	void set_id(int val) {_id = val;}
-	void set_pos(int row, int col){
-		if(is_fixed()) return;
-		_row = row;
-		_col = col;
-	}
+	void set_id(int val);
+	void set_pos(int row, int col);
 };
 
 class Net{
@@ -215,19 +148,15 @@ class Net{
 	vector<Pin*> _pins;
 	vector<Pos> _route;
 public:
-	Net(string name, int id, int min_layer):
-	_name(name),
-	_id(id),
-	_min_layer(min_layer)
-	{}
+	Net(string name, int id, int min_layer);
 
-	string get_name() const {return _name;}
-	int get_id() const {return _id;}
-	int get_min_layer() const {return _min_layer;}
+	string get_name() const;
+	int get_id() const;
+	int get_min_layer() const;
 
-	void set_id(int val) {_id = val;}
-	void add_pin(Pin *pin) {_pins.push_back(pin);}
-	void add_route(Pos pos) {_route.push_back(pos);}
+	void set_id(int val);
+	void add_pin(Pin *pin);
+	void add_route(Pos pos);
 };
 
 class CellLibrary{
@@ -239,23 +168,11 @@ class CellLibrary{
 		return _name2id.at(name);
 	}
 public:
-	CellLibrary(){}
+	CellLibrary();
 
-	MasterCell get_master_cell_by_name(string name, bool &success) const {
-		int id = get_id_by_name(name);
-		if(id==-1){
-			success = false;
-			return MasterCell(0,0);
-		}
-		return _master_cell_list.at(id);
-	}
+	MasterCell get_master_cell_by_name(string name, bool &success) const;
 
-	void add_master_cell(MasterCell ms){
-		int id = _master_cell_list.size();
-		ms.set_id(id);
-		_master_cell_list.push_back(ms);
-		_name2id[ms.get_name()] = id;
-	}
+	void add_master_cell(MasterCell ms);
 };
 
 class ExtraDemand{
@@ -271,27 +188,13 @@ class ExtraDemand{
 		return ExtraDemandCondition(ms1, ms2, layer);
 	}
 public:
-	ExtraDemand(){}
+	ExtraDemand();
 
-	int get_same_demand(int ms1, int ms2, int layer) const {
-		ExtraDemandCondition cond = get_cond(ms1, ms2, layer);
-		if(same_grid.find(cond)==same_grid.end()) return 0;
-		return same_grid.at(cond);
-	}
-	int get_adj_demand(int ms1, int ms2, int layer) const {
-		ExtraDemandCondition cond = get_cond(ms1, ms2, layer);
-		if(adj_hor_grid.find(cond)==adj_hor_grid.end()) return 0;
-		return adj_hor_grid.at(cond);
-	}
+	int get_same_demand(int ms1, int ms2, int layer) const;
+	int get_adj_demand(int ms1, int ms2, int layer) const;
 
-	void add_same_demand(int ms1, int ms2, int layer, int demand){
-		ExtraDemandCondition cond = get_cond(ms1, ms2, layer);
-		same_grid[cond] = demand;
-	}
-	void add_adj_demand(int ms1, int ms2, int layer, int demand){
-		ExtraDemandCondition cond = get_cond(ms1, ms2, layer);
-		adj_hor_grid[cond] = demand;
-	}
+	void add_same_demand(int ms1, int ms2, int layer, int demand);
+	void add_adj_demand(int ms1, int ms2, int layer, int demand);
 };
 
 class Design{
@@ -302,32 +205,14 @@ class Design{
 	map<string, int> _cell_name2id;
 	map<string, int> _net_name2id;
 public:
-	Design(int max_cell_move, int num_cells, int num_nets) :
-	_max_cell_move(max_cell_move)
-	{
-		_cell_list.clear();
-		_net_list.clear();
-		_moved_cell_id.clear();
-		_cell_name2id.clear();
-		_net_name2id.clear();
-	}
+	Design(int max_cell_move, int num_cells, int num_nets);
 
-	CellInstance* get_cell_by_id(int id) const {return _cell_list.at(id);}
-	Net* get_net_by_id(int id) const {return _net_list.at(id);}
+	CellInstance* get_cell_by_id(int id) const;
+	Net* get_net_by_id(int id) const;
 
-	CellInstance* get_cell_by_name(string name) const {return _cell_list.at(_cell_name2id.at(name));}
-	Net* get_net_by_name(string name) const {return _net_list.at(_net_name2id.at(name));}
+	CellInstance* get_cell_by_name(string name) const;
+	Net* get_net_by_name(string name) const;
 
-	void add_cell(CellInstance *cell){
-		int id = _cell_list.size();
-		cell->set_id(id);
-		_cell_list.push_back(cell);
-		_cell_name2id[cell->get_name()] = id;
-	}
-	void add_net(Net *net){
-		int id = _net_list.size();
-		net->set_id(id);
-		_net_list.push_back(net);
-		_net_name2id[net->get_name()] = id;
-	}
+	void add_cell(CellInstance *cell);
+	void add_net(Net *net);
 };
