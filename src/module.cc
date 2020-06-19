@@ -9,7 +9,7 @@ gGrid::gGrid(int layer, int row, int col, int supply):
 	_demand(0)
 {}
 
-Pos gGrid::get_pos() const {return _pos;}
+Pos3d gGrid::get_pos() const {return _pos;}
 
 int gGrid::get_demand() const {return _demand;}
 
@@ -76,7 +76,7 @@ Pin::Pin(string name, int id, CellInstance *cell, int layer_id):
 	_layer_id(layer_id)
 {}
 
-Pos Pin::get_pos() const {return Pos(_layer_id, _cell->get_row(), _cell->get_col());}
+Pos3d Pin::get_pos() const {return Pos3d(_layer_id, _cell->get_row(), _cell->get_col());}
 
 void Pin::add_net(Net *net) {_net_list.push_back(net);}
 
@@ -91,7 +91,7 @@ Blockage::Blockage(string name, int id, CellInstance *cell, int layer_id, int de
 	_demand(demand)
 {}
 
-Pos Blockage::get_pos() const {return Pos(_layer_id, _cell->get_row(), _cell->get_col());}
+Pos3d Blockage::get_pos() const {return Pos3d(_layer_id, _cell->get_row(), _cell->get_col());}
 
 int Blockage::get_demand() const {return _demand;}
 
@@ -162,7 +162,16 @@ int CellInstance::get_row() const {return _row;}
 
 int CellInstance::get_col() const {return _col;}
 
+Pos2d CellInstance::get_pos() const {return Pos2d(_row, _col);}
+
 void CellInstance::set_id(int val) {_id = val;}
+
+void CellInstance::set_pos(Pos2d pos)
+{
+    if(is_fixed()) return;
+    _row = get<0>(pos);
+    _col = get<1>(pos);
+}
 
 void CellInstance::set_pos(int row, int col)
 {
@@ -194,7 +203,7 @@ void Net::add_pin(Pin *pin)
     pin->add_net(this);
 }
 
-void Net::add_route(Pos pos) {_route.push_back(pos);}
+void Net::add_route(Pos3d pos) {_route.push_back(pos);}
 
 
 // class CellLibrary

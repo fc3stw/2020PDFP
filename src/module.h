@@ -12,7 +12,8 @@ using namespace std;
 typedef short Direction;
 // placement related
 
-typedef tuple<int, int, int> Pos; // layer, row, col
+typedef tuple<int, int, int> Pos3d; // layer, row, col
+typedef tuple<int, int> Pos2d; // row, col
 typedef tuple<int, int, int> ExtraDemandCondition; // ms1 id, ms2 id, layer id
 
 class gGrid;
@@ -29,13 +30,13 @@ class Design;
 
 class gGrid{
 	// This is the basic P&R resource
-	Pos _pos;
+	Pos3d _pos;
 	int _supply;
 	int _demand; // including extra demand
 public:
 	gGrid(int layer, int row, int col, int supply);
 
-	Pos get_pos() const;
+	Pos3d get_pos() const;
 	int get_demand() const;
 
 	void add_supply(int val);
@@ -83,7 +84,7 @@ class Pin{
 public:
 	Pin(string name, int id, CellInstance *cell, int layer_id);
 
-	Pos get_pos() const;
+	Pos3d get_pos() const;
 	void add_net(Net *net);
 };
 
@@ -96,7 +97,7 @@ class Blockage{
 public:
 	Blockage(string name, int id, CellInstance *cell, int layer_id, int demand);
 
-	Pos get_pos() const;
+	Pos3d get_pos() const;
 	int get_demand() const;
 };
 
@@ -136,8 +137,10 @@ public:
 	bool is_fixed() const;
 	int get_row() const;
 	int get_col() const;
+	Pos2d get_pos() const;
 
 	void set_id(int val);
+	void set_pos(Pos2d pos);
 	void set_pos(int row, int col);
 };
 
@@ -146,7 +149,7 @@ class Net{
 	int _id;
 	int _min_layer;
 	vector<Pin*> _pins;
-	vector<Pos> _route;
+	vector<Pos3d> _route;
 public:
 	Net(string name, int id, int min_layer);
 
@@ -156,7 +159,7 @@ public:
 
 	void set_id(int val);
 	void add_pin(Pin *pin);
-	void add_route(Pos pos);
+	void add_route(Pos3d pos);
 };
 
 class CellLibrary{
