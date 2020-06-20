@@ -13,7 +13,7 @@ Pos3d gGrid::get_pos() const {return _pos;}
 
 int gGrid::get_demand() const {return _demand;}
 
-void gGrid::add_supply(int val) {_supply += val;}
+int gGrid::get_remain_demand() const {return _supply - _demand;}
 
 bool gGrid::add_demand(int val)
 {

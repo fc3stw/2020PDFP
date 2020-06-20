@@ -38,8 +38,8 @@ public:
 
 	Pos3d get_pos() const;
 	int get_demand() const;
+	int get_remain_demand() const;
 
-	void add_supply(int val);
 	bool add_demand(int val);
 };
 
