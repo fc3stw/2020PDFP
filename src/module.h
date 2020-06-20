@@ -33,14 +33,17 @@ class gGrid{
 	Pos3d _pos;
 	int _supply;
 	int _demand; // including extra demand
+	set<int> _nets;
 public:
 	gGrid(int layer, int row, int col, int supply);
 
 	Pos3d get_pos() const;
 	int get_demand() const;
-	int get_remain_demand() const;
+	int get_remain_supply() const;
+	set<int>& get_nets();
 
 	bool add_demand(int val);
+	void add_net(int net_id);
 };
 
 class Layer{
@@ -71,6 +74,7 @@ public:
 
 	int get_num_rows() const;
 	int get_num_cols() const;
+	gGrid& get_grid(Pos3d pos);
 
 	void add_layer(string name, int supply);
 };
@@ -85,9 +89,10 @@ public:
 	Pin(string name, int id, CellInstance *cell, int layer_id);
 
 	Pos3d get_pos() const;
+	int get_num_nets() const;
+	Net* get_net(int idx);
+
 	void add_net(Net *net);
-	//ting
-	void get_net(vector<Net*>& p_pNet){p_pNet = _net_list;}
 };
 
 class Blockage{
@@ -127,14 +132,13 @@ class CellInstance{
 	int _id;
 	int _master_cell_id;
 	bool _fixed;
-	vector<Pin*> _pin_list;
-	vector<Blockage*> _blkg_list;
 	int _row;
 	int _col;
-	//ting
-	int _HPWL;
+	int _hpwl_cost;
+	vector<Pin*> _pin_list;
+	vector<Blockage*> _blkg_list;
 public:
-	CellInstance(string name, int id, MasterCell master_cell, bool fixed);
+	CellInstance(string name, int id, MasterCell &master_cell, bool fixed);
 
 	string get_name() const;
 	int get_id() const;
@@ -142,38 +146,40 @@ public:
 	int get_row() const;
 	int get_col() const;
 	Pos2d get_pos() const;
+	int get_hpwl_cost() const;
+	int get_num_pins() const;
+	int get_num_blkgs() const;
+	Pin* get_pin(int idx);
+	Blockage* get_blkg(int idx);
 
 	void set_id(int val);
 	void set_pos(Pos2d pos);
 	void set_pos(int row, int col);
-	//ting
-	void get_pin(vector<Pin*>& p_pPin){p_pPin = _pin_list;}
-	void set_HPWL(int p_nHPWL){_HPWL = p_nHPWL;}
-	int  get_HPWL(){return _HPWL;}	
+	void set_hpwl_cost(int val);
 };
 
 class Net{
 	string _name;
 	int _id;
 	int _min_layer;
+	int _hpwl;
 	vector<Pin*> _pins;
 	vector<Pos3d> _route;
-	//ting
-	int _HPWL;
 public:
 	Net(string name, int id, int min_layer);
 
 	string get_name() const;
 	int get_id() const;
 	int get_min_layer() const;
+	int get_hpwl() const;
+	int get_num_pins() const;
+	Pin* get_pin(int idx) const;
+	vector<Pos3d>& get_route();
 
 	void set_id(int val);
-	void add_pin(Pin *pin);
+	void set_hpwl(int val);
+	void add_pin(Pin *pin); // remember to add net pin on gGrid
 	void add_route(Pos3d pos);
-	//ting
-	void get_pin(vector<Pin*>& p_pPin){p_pPin = _pins;}
-	void set_HPWL(int p_nHPWL){_HPWL = p_nHPWL;}
-	int  get_HPWL(){return _HPWL;}
 };
 
 class CellLibrary{
@@ -216,6 +222,8 @@ public:
 
 class Design{
 	int _max_cell_move;
+	int num_cells;
+	int num_nets;
 	vector<CellInstance*> _cell_list;
 	vector<Net*> _net_list;
 	set<int> _moved_cell_id;
@@ -223,6 +231,9 @@ class Design{
 	map<string, int> _net_name2id;
 public:
 	Design(int max_cell_move, int num_cells, int num_nets);
+
+	int get_num_cells() const;
+	int get_num_nets() const;
 
 	CellInstance* get_cell_by_id(int id) const;
 	Net* get_net_by_id(int id) const;
@@ -232,7 +243,4 @@ public:
 
 	void add_cell(CellInstance *cell);
 	void add_net(Net *net);
-	//ting
-	void get_net(vector<Net*>& p_pNet){p_pNet = _net_list;}
-	void get_cellinstance(vector<CellInstance*>& p_pCellInstance){p_pCellInstance = _cell_list;}
 };

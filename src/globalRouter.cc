@@ -14,7 +14,7 @@ Edge::Edge(Vertex *v1, Vertex *v2):
 
 Vertex* Edge::get_v1() const {return _v1;}
 
-Vertex* Edge::get_v1() const {return _v2;}
+Vertex* Edge::get_v2() const {return _v2;}
 
 int Edge::get_wl() const
 {
@@ -35,4 +35,6 @@ GlobalRouter::GlobalRouter(const vector<Vertex*> &vertex_list)
 }
 
 vector<Edge*>& GlobalRouter::global_route()
-{}
+{
+    return _min_spanning_tree;
+}
