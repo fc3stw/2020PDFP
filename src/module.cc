@@ -15,7 +15,7 @@ int gGrid::get_demand() const {return _demand;}
 
 int gGrid::get_remain_supply() const {return _supply - _demand;}
 
-set<int>& gGrid::get_net_pin() {return _net_pin;}
+set<int>& gGrid::get_nets() {return _nets;}
 
 bool gGrid::add_demand(int val)
 {
@@ -25,7 +25,7 @@ bool gGrid::add_demand(int val)
     return true;
 }
 
-void gGrid::add_net_pin(int net_id) {_net_pin.insert(net_id);}
+void gGrid::add_net(int net_id) {_nets.insert(net_id);}
 
 
 // class Layer
@@ -170,6 +170,14 @@ int CellInstance::get_col() const {return _col;}
 
 Pos2d CellInstance::get_pos() const {return Pos2d(_row, _col);}
 
+int CellInstance::get_num_pins() const {return _pin_list.size();}
+
+int CellInstance::get_num_blkgs() const {return _blkg_list.size();}
+
+Pin* CellInstance::get_pin(int idx) {return _pin_list.at(idx);}
+
+Blockage* CellInstance::get_blkg(int idx) {return _blkg_list.at(idx);}
+
 void CellInstance::set_id(int val) {_id = val;}
 
 void CellInstance::set_pos(Pos2d pos)
@@ -200,6 +208,12 @@ string Net::get_name() const {return _name;}
 int Net::get_id() const {return _id;}
 
 int Net::get_min_layer() const {return _min_layer;}
+
+int Net::get_pin_num() const {return _pins.size();}
+
+Pin* Net::get_pin(int idx) const {return _pins.at(idx);}
+
+vector<Pos3d>& Net::get_route() {return _route;}
 
 void Net::set_id(int val) {_id = val;}
 
@@ -277,6 +291,10 @@ Design::Design(int max_cell_move, int num_cells, int num_nets) :
     _cell_name2id.clear();
     _net_name2id.clear();
 }
+
+int Design::get_num_cells() const {return _cell_list.size();}
+
+int Design::get_num_nets() const {return _net_list.size();}
 
 CellInstance* Design::get_cell_by_id(int id) const {return _cell_list.at(id);}
 
