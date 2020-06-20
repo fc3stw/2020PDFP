@@ -131,7 +131,7 @@ void MasterCell::add_blkg(string name, int id, int layer_id, int demand)
 
 // class CellInstance
 
-CellInstance::CellInstance(string name, int id, MasterCell master_cell, bool fixed):
+CellInstance::CellInstance(string name, int id, MasterCell &master_cell, bool fixed):
 	_name(name),
 	_id(id),
 	_master_cell_id(master_cell.get_id()),

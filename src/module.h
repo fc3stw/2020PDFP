@@ -130,7 +130,7 @@ class CellInstance{
 	int _row;
 	int _col;
 public:
-	CellInstance(string name, int id, MasterCell master_cell, bool fixed);
+	CellInstance(string name, int id, MasterCell &master_cell, bool fixed);
 
 	string get_name() const;
 	int get_id() const;
