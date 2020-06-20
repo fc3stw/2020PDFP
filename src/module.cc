@@ -84,6 +84,10 @@ Pin::Pin(string name, int id, CellInstance *cell, int layer_id):
 
 Pos3d Pin::get_pos() const {return Pos3d(_layer_id, _cell->get_row(), _cell->get_col());}
 
+int Pin::get_num_nets() const {return _net_list.size();}
+
+Net* Pin::get_net(int idx) {return _net_list.at(idx);}
+
 void Pin::add_net(Net *net) {_net_list.push_back(net);}
 
 

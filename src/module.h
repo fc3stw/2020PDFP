@@ -89,6 +89,9 @@ public:
 	Pin(string name, int id, CellInstance *cell, int layer_id);
 
 	Pos3d get_pos() const;
+	int get_num_nets() const;
+	Net* get_net(int idx);
+
 	void add_net(Net *net);
 };
 
