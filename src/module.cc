@@ -223,7 +223,7 @@ int Net::get_min_layer() const {return _min_layer;}
 
 int Net::get_hpwl() const {return _hpwl;}
 
-int Net::get_pin_num() const {return _pins.size();}
+int Net::get_num_pins() const {return _pins.size();}
 
 Pin* Net::get_pin(int idx) const {return _pins.at(idx);}
 

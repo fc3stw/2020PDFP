@@ -8,7 +8,7 @@ Router::Router(Chip &chip, vector<Net*> &net_list):
     _sorted_net_list(net_list)
 {}
 
-bool Router::sort_net_by_hpwl(Net *n1, Net *n2) {return n1->hpwl() > n2->hpwl();}
+bool sort_net_by_hpwl(Net *n1, Net *n2) {return n1->get_hpwl() > n2->get_hpwl();}
 
 void Router::routing_flow()
 {
@@ -17,7 +17,7 @@ void Router::routing_flow()
 
     for(Net *net : _sorted_net_list){
         vector<Vertex*> vertex_list;
-        for(int i = 0; i<net->get_pin_num(); i++){
+        for(int i = 0; i<net->get_num_pins(); i++){
             vertex_list.push_back(
                 new Vertex(net->get_pin(i)->get_pos())
             );
@@ -46,7 +46,7 @@ void Router::routing_flow()
 set<Pos3d> Router::collect_steiner_points(Net *net)
 {
     set<Pos3d> steiner_points;
-    int num_pins = net->get_pin_num();
+    int num_pins = net->get_num_pins();
     // for each pin pair
     for(int i = 0; i<num_pins-1; i++){
         for(int j = i+1; j<num_pins; j++){
