@@ -172,7 +172,7 @@ public:
 	int get_id() const;
 	int get_min_layer() const;
 	int get_hpwl() const;
-	int get_pin_num() const;
+	int get_num_pins() const;
 	Pin* get_pin(int idx) const;
 	vector<Pos3d>& get_route();
 
