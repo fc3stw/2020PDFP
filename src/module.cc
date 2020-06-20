@@ -13,7 +13,9 @@ Pos3d gGrid::get_pos() const {return _pos;}
 
 int gGrid::get_demand() const {return _demand;}
 
-int gGrid::get_remain_demand() const {return _supply - _demand;}
+int gGrid::get_remain_supply() const {return _supply - _demand;}
+
+set<int>& gGrid::get_net_pin() {return _net_pin;}
 
 bool gGrid::add_demand(int val)
 {
@@ -22,6 +24,8 @@ bool gGrid::add_demand(int val)
     _demand += val;
     return true;
 }
+
+void gGrid::add_net_pin(int net_id) {_net_pin.insert(net_id);}
 
 
 // class Layer
@@ -58,6 +62,8 @@ Chip::Chip(int row_begin, int col_begin, int row_end, int col_end):
 int Chip::get_num_rows() const {return _num_rows;}
 
 int Chip::get_num_cols() const {return _num_cols;}
+
+gGrid& Chip::get_grid(Pos3d pos) {return _layer_list.at(get<0>(pos)).get_grid(get<1>(pos), get<2>(pos));}
 
 void Chip::add_layer(string name, int supply)
 {

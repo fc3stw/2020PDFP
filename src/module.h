@@ -33,14 +33,17 @@ class gGrid{
 	Pos3d _pos;
 	int _supply;
 	int _demand; // including extra demand
+	set<int> _net_pin;
 public:
 	gGrid(int layer, int row, int col, int supply);
 
 	Pos3d get_pos() const;
 	int get_demand() const;
-	int get_remain_demand() const;
+	int get_remain_supply() const;
+	set<int>& get_net_pin();
 
 	bool add_demand(int val);
+	void add_net_pin(int net_id);
 };
 
 class Layer{
@@ -71,6 +74,7 @@ public:
 
 	int get_num_rows() const;
 	int get_num_cols() const;
+	gGrid& get_grid(Pos3d pos);
 
 	void add_layer(string name, int supply);
 };
@@ -158,7 +162,7 @@ public:
 	int get_min_layer() const;
 
 	void set_id(int val);
-	void add_pin(Pin *pin);
+	void add_pin(Pin *pin); // remember to add net pin on gGrid
 	void add_route(Pos3d pos);
 };
 
