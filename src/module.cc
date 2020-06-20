@@ -145,7 +145,10 @@ CellInstance::CellInstance(string name, int id, MasterCell &master_cell, bool fi
 	_name(name),
 	_id(id),
 	_master_cell_id(master_cell.get_id()),
-	_fixed(fixed)
+	_fixed(fixed),
+    _row(0),
+    _col(0),
+    _hpwl_cost(0)
 {
     _pin_list.clear();
     vector<Pin>& pins = master_cell.get_pins();
@@ -174,6 +177,8 @@ int CellInstance::get_col() const {return _col;}
 
 Pos2d CellInstance::get_pos() const {return Pos2d(_row, _col);}
 
+int CellInstance::get_hpwl_cost() const {return _hpwl_cost;}
+
 int CellInstance::get_num_pins() const {return _pin_list.size();}
 
 int CellInstance::get_num_blkgs() const {return _blkg_list.size();}
@@ -198,13 +203,16 @@ void CellInstance::set_pos(int row, int col)
     _col = col;
 }
 
+void CellInstance::set_hpwl_cost(int val) {_hpwl_cost = val;}
+
 
 // class Net
 
 Net::Net(string name, int id, int min_layer):
 	_name(name),
 	_id(id),
-	_min_layer(min_layer)
+	_min_layer(min_layer),
+    _hpwl(0)
 {}
 
 string Net::get_name() const {return _name;}
@@ -213,6 +221,8 @@ int Net::get_id() const {return _id;}
 
 int Net::get_min_layer() const {return _min_layer;}
 
+int Net::get_hpwl() const {return _hpwl;}
+
 int Net::get_pin_num() const {return _pins.size();}
 
 Pin* Net::get_pin(int idx) const {return _pins.at(idx);}
@@ -220,6 +230,8 @@ Pin* Net::get_pin(int idx) const {return _pins.at(idx);}
 vector<Pos3d>& Net::get_route() {return _route;}
 
 void Net::set_id(int val) {_id = val;}
+
+void Net::set_hpwl(int val) {_hpwl = val;}
 
 void Net::add_pin(Pin *pin)
 {
