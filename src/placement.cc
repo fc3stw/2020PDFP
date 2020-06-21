@@ -63,7 +63,7 @@ void Placement::move_cell()
        int layer_id = 0;
        int row  = 0;
        int col = 0; 
-       int layer_id_sum = 0;
+       //int layer_id_sum = 0;
        int row_sum = 0;
        int col_sum = 0;
        int pin_count = 0;
@@ -77,7 +77,7 @@ void Placement::move_cell()
                     if(pin_id_other != pin_id){ //Don't calculate current cell
                         Pin* pin_connected =  net -> get_pin(pin_id_other);
                         tie(layer_id, row, col) = pin_connected -> get_pos();
-                        layer_id_sum += num_pins_minus1*layer_id;
+                        //layer_id_sum += num_pins_minus1*layer_id;
                         row_sum += num_pins_minus1*row;
                         col_sum += num_pins_minus1*col; 
                     }
@@ -85,7 +85,7 @@ void Placement::move_cell()
                 pin_count += num_pins_minus1;
            }              
        }
-       layer = layer_id_sum / pin_count;
+       //layer = layer_id_sum / pin_count;
        row = row_sum / pin_count;
        col = col_sum / pin_count;
        if(update_demand(current_cell, row, col)) break;
@@ -115,23 +115,29 @@ bool Placement::another_move(CellInstance* cell, int row, int column)
 
 }
 
-bool Placement::is_position_valid(CellInstance* cell, int row, int column)
-{
-    
-}
 
 bool Placement::update_demand(CellInstance* cell, int row, int column)
 {
-    for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){ //All blk cell connected
-        Blockage* blk = cell -> get_blkg(blk_id);//get block
-        Pos3d position = blk->get_pos();//find where is the blk
-        gGrid grid = _chip.get_grid(position);//go to this grid            
-        if(!grid.add_demand(blk -> get_demand())){
-            return false;
-        }//update demand in this grid
-        cell -> set_pos(row, column);//update cell location
-    }
-    return true;
+  vector<gGrid> history_grid;
+  vector<int> history_gain;
+  history_grid.clear();
+  history_gain.clear();
+  for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){ //All blk cell connected
+    Blockage* blk = cell -> get_blkg(blk_id);//get block
+    Pos3d position = blk->get_pos();//find where is the blk
+    gGrid grid = _chip.get_grid(position);//go to this grid 
+    if(!grid.add_demand(blk -> get_demand())){
+      for (int i = 0; i < history_gain.size(); ++i)
+      {
+        history_grid[i].add_demand(-history_gain[i]);
+      }
+      return false;
+    }//update demand in this grid
+    history_grid.push_back(grid);
+    history_gain.push_back(blk -> get_demand());
+  }
+  cell -> set_pos(row, column);//update cell location
+  return true;
 } 
 
 // int main(){
