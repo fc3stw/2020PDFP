@@ -1,38 +1,64 @@
 #include "globalRouter.h"
 #include <cmath>
+#include <algorithm>
+#include <map>
 
-Vertex::Vertex(const Pos &pos):
-    _pos(pos)
-{}
-
-Pos Vertex::get_pos() const {return _pos;}
-
-Edge::Edge(Vertex *v1, Vertex *v2):
-    _v1(v1),
-    _v2(v2)
-{}
-
-Vertex* Edge::get_v1() const {return _v1;}
-
-Vertex* Edge::get_v1() const {return _v2;}
-
-int Edge::get_wl() const
+GlobalRouter::GlobalRouter(const RoutingGraph &original_graph)
 {
-    return abs(get<0>(_v1->get_pos()) - get<0>(_v2->get_pos()))
-        + abs(get<1>(_v1->get_pos()) - get<1>(_v2->get_pos()))
-        + abs(get<2>(_v1->get_pos()) - get<2>(_v2->get_pos()));
+	_original_graph = RoutingGraph(original_graph, false);
+	_mst = RoutingGraph(original_graph, true);
 }
 
-GlobalRouter::GlobalRouter(const vector<Vertex*> &vertex_list)
+RoutingGraph GlobalRouter::get_mst() const {return _mst;}
+
+bool compare(const Edge *e1, const Edge *e2)
 {
-    _vertex_list = vertex_list;
-    for(int i = 0; i<_vertex_list.size()-1; i++){
-        for(int j = i+1; j<_vertex_list.size(); j++){
-            _edge_list.push_back(
-                new Edge(_vertex_list[i], _vertex_list[j]));
-        }
-    }
+	return e1->get_weight() < e2->get_weight();
 }
 
-vector<Edge*>& GlobalRouter::global_route()
-{}
+void GlobalRouter::route()
+{
+	map<int, int> v_to_cluster_id;
+	vector<Edge*> edge_list;
+	int cluster = 0;
+
+	int num_edges = _original_graph.get_num_edges();
+	for(int i = 0; i < num_edges; i++){
+		Edge *edge;
+		edge = _original_graph.get_edge(i);
+		edge_list.push_back(edge);
+	}
+
+	sort(edge_list.begin(), edge_list.end(), compare);
+
+	for(int i = 0; i < num_edges; i++){
+		int v1 = edge_list[i]->get_v1()->get_id();
+		int v2 = edge_list[i]->get_v2()->get_id();
+		bool v1_find = (v_to_cluster_id.find(v1) != v_to_cluster_id.end()) ? true : false;
+		bool v2_find = (v_to_cluster_id.find(v2) != v_to_cluster_id.end()) ? true : false;
+
+		if(v1_find == true && v2_find == true && (v_to_cluster_id[v1] == v_to_cluster_id[v2]))
+			continue;
+
+		if(v1_find == false && v2_find == false){
+			v_to_cluster_id[v1] = cluster;
+			v_to_cluster_id[v2] = cluster;
+		}
+		else if(v1_find == true && v2_find == false){
+			v_to_cluster_id[v2] = v_to_cluster_id[v1];
+		}
+		else if(v1_find == false && v2_find == true){
+			v_to_cluster_id[v1] = v_to_cluster_id[v2];
+		}
+		else{
+			for(auto c : v_to_cluster_id){
+				if(c.second == v_to_cluster_id[v1] || c.second == v_to_cluster_id[v2]){
+					v_to_cluster_id[v1] = cluster;
+					v_to_cluster_id[v2] = cluster;
+				}
+			}
+		}
+		cluster++;
+		_mst.add_edge(v1, v2);
+	}
+}

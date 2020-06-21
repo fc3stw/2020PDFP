@@ -13,7 +13,9 @@ Pos3d gGrid::get_pos() const {return _pos;}
 
 int gGrid::get_demand() const {return _demand;}
 
-int gGrid::get_remain_demand() const {return _supply - _demand;}
+int gGrid::get_remain_supply() const {return _supply - _demand;}
+
+set<int>& gGrid::get_nets() {return _nets;}
 
 bool gGrid::add_demand(int val)
 {
@@ -22,6 +24,8 @@ bool gGrid::add_demand(int val)
     _demand += val;
     return true;
 }
+
+void gGrid::add_net(int net_id) {_nets.insert(net_id);}
 
 
 // class Layer
@@ -59,6 +63,20 @@ int Chip::get_num_rows() const {return _num_rows;}
 
 int Chip::get_num_cols() const {return _num_cols;}
 
+gGrid& Chip::get_grid(Pos3d pos) {return _layer_list.at(get<0>(pos)).get_grid(get<1>(pos), get<2>(pos));}
+
+bool Chip::has_grid(Pos3d pos)
+{
+    int layer, row, col;
+    tie(layer, row, col) = pos;
+    if(layer < 0 || layer > _layer_list.size()-1) return false;
+    if(row < 0 || row > _num_rows-1) return false;
+    if(col < 0 || col > _num_cols-1) return false;
+    return true;
+}
+
+Direction Chip::get_layer_dir(int layer_id) {return layer_id % 2;}
+
 void Chip::add_layer(string name, int supply)
 {
     int layer_id = _layer_list.size();
@@ -77,6 +95,10 @@ Pin::Pin(string name, int id, CellInstance *cell, int layer_id):
 {}
 
 Pos3d Pin::get_pos() const {return Pos3d(_layer_id, _cell->get_row(), _cell->get_col());}
+
+int Pin::get_num_nets() const {return _net_list.size();}
+
+Net* Pin::get_net(int idx) {return _net_list.at(idx);}
 
 void Pin::add_net(Net *net) {_net_list.push_back(net);}
 
@@ -135,7 +157,10 @@ CellInstance::CellInstance(string name, int id, MasterCell &master_cell, bool fi
 	_name(name),
 	_id(id),
 	_master_cell_id(master_cell.get_id()),
-	_fixed(fixed)
+	_fixed(fixed),
+    _row(0),
+    _col(0),
+    _hpwl_cost(0)
 {
     _pin_list.clear();
     vector<Pin>& pins = master_cell.get_pins();
@@ -164,6 +189,16 @@ int CellInstance::get_col() const {return _col;}
 
 Pos2d CellInstance::get_pos() const {return Pos2d(_row, _col);}
 
+int CellInstance::get_hpwl_cost() const {return _hpwl_cost;}
+
+int CellInstance::get_num_pins() const {return _pin_list.size();}
+
+int CellInstance::get_num_blkgs() const {return _blkg_list.size();}
+
+Pin* CellInstance::get_pin(int idx) {return _pin_list.at(idx);}
+
+Blockage* CellInstance::get_blkg(int idx) {return _blkg_list.at(idx);}
+
 void CellInstance::set_id(int val) {_id = val;}
 
 void CellInstance::set_pos(Pos2d pos)
@@ -180,13 +215,16 @@ void CellInstance::set_pos(int row, int col)
     _col = col;
 }
 
+void CellInstance::set_hpwl_cost(int val) {_hpwl_cost = val;}
+
 
 // class Net
 
 Net::Net(string name, int id, int min_layer):
 	_name(name),
 	_id(id),
-	_min_layer(min_layer)
+	_min_layer(min_layer),
+    _hpwl(0)
 {}
 
 string Net::get_name() const {return _name;}
@@ -195,7 +233,17 @@ int Net::get_id() const {return _id;}
 
 int Net::get_min_layer() const {return _min_layer;}
 
+int Net::get_hpwl() const {return _hpwl;}
+
+int Net::get_num_pins() const {return _pins.size();}
+
+Pin* Net::get_pin(int idx) const {return _pins.at(idx);}
+
+vector<Pos3d>& Net::get_route() {return _route;}
+
 void Net::set_id(int val) {_id = val;}
+
+void Net::set_hpwl(int val) {_hpwl = val;}
 
 void Net::add_pin(Pin *pin)
 {
@@ -271,6 +319,10 @@ Design::Design(int max_cell_move, int num_cells, int num_nets) :
     _cell_name2id.clear();
     _net_name2id.clear();
 }
+
+int Design::get_num_cells() const {return _cell_list.size();}
+
+int Design::get_num_nets() const {return _net_list.size();}
 
 CellInstance* Design::get_cell_by_id(int id) const {return _cell_list.at(id);}
 
