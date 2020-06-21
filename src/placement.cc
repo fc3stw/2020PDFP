@@ -1,5 +1,6 @@
 #include "placement.h"
 #include <climits>
+#include <iostream>
 
 void Placement::set_HPWL_for_nets()
 {
@@ -47,7 +48,7 @@ void Placement::set_HPWL_for_cells()
            cellinstance_HPWL += net -> get_hpwl(); 
         }
         cell -> set_hpwl_cost(cellinstance_HPWL);
-        cell_cost_list.insert(cellinstance_HPWL, cell_id);
+        cell_cost_list.insert(pair<int, int>(cellinstance_HPWL, cell_id));
     }
 }
 void Placement::move_cell()
@@ -56,9 +57,9 @@ void Placement::move_cell()
     for (iter = cell_cost_list.begin(); iter != cell_cost_list.end(); iter++)
     {
        int id = iter->second;
-       CellInstance* current_cell = _design->get_cell_by_id(id);
+       CellInstance* current_cell = _design.get_cell_by_id(id);
        minus_demand(current_cell);
-       
+
     }
 
 }
