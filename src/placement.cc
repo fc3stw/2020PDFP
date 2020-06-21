@@ -56,12 +56,42 @@ void Placement::move_cell()
     map<int,int>::iterator iter;
     for (iter = cell_cost_list.begin(); iter != cell_cost_list.end(); iter++)
     {
-       int id = iter->second;
+       int id = iter->second;//cell_id
        CellInstance* current_cell = _design.get_cell_by_id(id);
        minus_demand(current_cell);
-
+       //Process one cell new position use zero force
+       int layer_id = 0;
+       int row  = 0;
+       int col = 0; 
+       int layer_id_sum = 0;
+       int row_sum = 0;
+       int col_sum = 0;
+       int pin_count = 0;
+       for(int pin_id = 0 ; pin_id < current_cell -> get_num_pins(); pin_id++){//The pin cell connect  
+           Pin* pin = current_cell -> get_pin(pin_id);//get pin for current cell
+           for(int net_id = 0; net_id < pin -> get_num_nets(); net_id++){//get net this pin connect
+                Net *net = pin -> get_net(net_id);//get net
+                int num_pins = net -> get_num_pins();//This net connect which pins
+                int num_pins_minus1 = num_pins - 1;
+                for(int pin_id_other = 0; pin_id_other < num_pins; pin_id_other++){
+                    if(pin_id_other != pin_id){ //Don't calculate current cell
+                        Pin* pin_connected =  net -> get_pin(pin_id_other);
+                        tie(layer_id, row, col) = pin_connected -> get_pos();
+                        layer_id_sum += num_pins_minus1*layer_id;
+                        row_sum += num_pins_minus1*row;
+                        col_sum += num_pins_minus1*col; 
+                    }
+                }
+                pin_count += num_pins_minus1;
+           }              
+       }
+       layer = layer_id_sum / pin_count;
+       row = row_sum / pin_count;
+       col = col_sum / pin_count;
+       if(update_demand(current_cell, row, col)) break;
+       if(another_move(current_cell, row, col)) break;
+       else continue;
     }
-
 }
 void Placement::minus_demand(CellInstance* cell)
 {
@@ -79,9 +109,29 @@ void Placement::minus_demand(CellInstance* cell)
     return;
 }
 
-void Placement::updata_demand(CellInstance* cell, int row, int column)
+bool Placement::another_move(CellInstance* cell, int row, int column)
 {
 
+
+}
+
+bool Placement::is_position_valid(CellInstance* cell, int row, int column)
+{
+    
+}
+
+bool Placement::update_demand(CellInstance* cell, int row, int column)
+{
+    for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){ //All blk cell connected
+        Blockage* blk = cell -> get_blkg(blk_id);//get block
+        Pos3d position = blk->get_pos();//find where is the blk
+        gGrid grid = _chip.get_grid(position);//go to this grid            
+        if(!grid.add_demand(blk -> get_demand())){
+            return false;
+        }//update demand in this grid
+        cell -> set_pos(row, column);//update cell location
+    }
+    return true;
 } 
 
 // int main(){
