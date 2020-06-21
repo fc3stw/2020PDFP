@@ -58,6 +58,7 @@ void Placement::move_cell()
        int id = iter->second;
        CellInstance* current_cell = _design->get_cell_by_id(id);
        minus_demand(current_cell);
+       
     }
 
 }
@@ -66,14 +67,15 @@ void Placement::minus_demand(CellInstance* cell)
     int blkgs_num =  cell->get_num_blkgs();
     for (int i = 0; i < blkgs_num; ++i)
     {
-        /* code */
+        Blockage* blk = cell->get_blkg(i);
+        Pos3d position = blk->get_pos();
+        gGrid grid = _chip.get_grid(position);
+        if (!grid.add_demand(-(blk->get_demand())))
+        {
+            cerr<<"ERROR IN GRID DEMAND"<<endl;
+        }
     }
-
-}
-
-bool Placement::is_demand_valid(CellInstance* cell,int row, int column)
-{
-
+    return;
 }
 
 void Placement::updata_demand(CellInstance* cell, int row, int column)

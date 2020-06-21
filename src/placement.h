@@ -14,6 +14,5 @@ public:
 	void set_HPWL_for_cells();
 	void move_cell();
 	void minus_demand(CellInstance* cell);
-	bool is_demand_valid(CellInstance* cell,int row, int column);//Is this move valid?
 	void updata_demand(CellInstance* cell, int row, int column);//If yes update demand,else restore original demand 
 };
