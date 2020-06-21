@@ -134,6 +134,7 @@ class CellInstance{
 	bool _fixed;
 	int _row;
 	int _col;
+	int _hpwl_cost;
 	vector<Pin*> _pin_list;
 	vector<Blockage*> _blkg_list;
 public:
@@ -145,6 +146,7 @@ public:
 	int get_row() const;
 	int get_col() const;
 	Pos2d get_pos() const;
+	int get_hpwl_cost() const;
 	int get_num_pins() const;
 	int get_num_blkgs() const;
 	Pin* get_pin(int idx);
@@ -153,12 +155,14 @@ public:
 	void set_id(int val);
 	void set_pos(Pos2d pos);
 	void set_pos(int row, int col);
+	void set_hpwl_cost(int val);
 };
 
 class Net{
 	string _name;
 	int _id;
 	int _min_layer;
+	int _hpwl;
 	vector<Pin*> _pins;
 	vector<Pos3d> _route;
 public:
@@ -167,11 +171,13 @@ public:
 	string get_name() const;
 	int get_id() const;
 	int get_min_layer() const;
-	int get_pin_num() const;
+	int get_hpwl() const;
+	int get_num_pins() const;
 	Pin* get_pin(int idx) const;
 	vector<Pos3d>& get_route();
 
 	void set_id(int val);
+	void set_hpwl(int val);
 	void add_pin(Pin *pin); // remember to add net pin on gGrid
 	void add_route(Pos3d pos);
 };
