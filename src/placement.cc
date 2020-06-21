@@ -88,10 +88,17 @@ void Placement::move_cell()
        //layer = layer_id_sum / pin_count;
        row = row_sum / pin_count;
        col = col_sum / pin_count;
-       if(update_demand(current_cell, row, col)) break;
-       if(another_move(current_cell, row, col)) break;
+       if(update_demand(current_cell, row, col)){
+           cout<<"SUCCESSFULLY MOVE"<<endl;
+           break;
+       } 
+       if(another_move(current_cell, row, col)){
+           cout<<"SUCCESSFULLY MOVE"<<endl;
+           break;
+       } 
        else continue;
     }
+    return;
 }
 void Placement::minus_demand(CellInstance* cell)
 {
@@ -111,8 +118,46 @@ void Placement::minus_demand(CellInstance* cell)
 
 bool Placement::another_move(CellInstance* cell, int row, int column)
 {
-
-
+    int max_cell_supply_sum = 0;
+    int row_new = -1;
+    int col_new = -1;
+    int layer_id = 0;
+    int row_old = 0;
+    int col_old = 0;
+    for(int c = column -1; c <= column + 1; c++ ){
+        for(int r = row - 1;r <= row + 1; r++){
+            int blksgsNum = cell -> get_num_blkgs();
+            int cell_supply_sum = 0;
+            for(int blk_id = 0; blk_id < blksgsNum ; blk_id++){
+                Blockage* blk = cell->get_blkg(blk_id);
+                tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
+                int current_blk_demand = blk -> get_demand();
+                gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                int candidate_grid_remain_supply = grid.get_remain_supply();
+                int candidate_grid_remain_supply_aftermove = candidate_grid_remain_supply - current_blk_demand;
+                cell_supply_sum += candidate_grid_remain_supply_aftermove;
+                if(candidate_grid_remain_supply_aftermove < 0){
+                    cell_supply_sum = INT_MIN;
+                    break;
+                }   
+            }
+            if(cell_supply_sum > max_cell_supply_sum){
+                max_cell_supply_sum = cell_supply_sum;
+                row_new = r;
+                col_new = c;
+            }                               
+        }
+    }
+    if(row_new == -1)
+        return false;
+    else{
+        if(update_demand(cell, row_new, col_new))
+            return true;
+        else{
+            cerr<<"There is something wrong!!!"<<endl;
+            return false;
+        }
+    } 
 }
 
 
