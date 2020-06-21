@@ -30,6 +30,8 @@ void Placement::set_HPWL_for_nets()
 }
 void Placement::set_HPWL_for_cells()
 {
+    cell_cost_list.erase(cell_cost_list.begin(), cell_cost_list.end());
+
 	/*==set_HPWL_for_cells==*/
     for(int cell_id = 0; cell_id < _design.get_num_cells(); cell_id++){
         CellInstance* cell = _design.get_cell_by_id(cell_id);
@@ -45,7 +47,13 @@ void Placement::set_HPWL_for_cells()
            cellinstance_HPWL += net -> get_hpwl(); 
         }
         cell -> set_hpwl_cost(cellinstance_HPWL);
+        cell_cost_list.insert(cellinstance_HPWL, cell_id);
     }
+}
+void Placement::move_cell()
+{
+    
+
 }
 
 // int main(){
