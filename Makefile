@@ -1,9 +1,9 @@
 CC=g++
 LDFLAGS=-std=c++11 -O3 -lm
-SOURCES=src/module.cc src/main.cc src/routingFlow.cc src/globalRouter.cc src/placement.cc
+SOURCES=src/module.cc src/main.cc src/routingFlow.cc src/globalRouter.cc src/routingGraph.cc src/placement.cc
 OBJECTS=$(SOURCES:.c=.o)
 EXECUTABLE=APR
-INCLUDES=src/module.h src/routingFlow.h src/globalRouter.h src/placement.h
+INCLUDES=src/module.h src/routingFlow.h src/globalRouter.h src/routingGraph.h src/placement.h
 
 all: $(SOURCES) bin/$(EXECUTABLE)
 

@@ -2,6 +2,7 @@
 #include "globalRouter.h"
 #include <algorithm>
 
+
 Router::Router(Chip &chip, vector<Net*> &net_list):
     _chip(chip),
     _net_list(net_list),
@@ -16,25 +17,14 @@ void Router::routing_flow()
     sort(_sorted_net_list.begin(), _sorted_net_list.end(), sort_net_by_hpwl);
 
     for(Net *net : _sorted_net_list){
-        vector<Vertex*> vertex_list;
-        for(int i = 0; i<net->get_num_pins(); i++){
-            vertex_list.push_back(
-                new Vertex(net->get_pin(i)->get_pos())
-            );
-        }
         // global route: build minimum spanning tree
-        GlobalRouter gRouter(vertex_list);
-        vector<Edge*> edge_list = gRouter.global_route();
         // detail route: find a route for each 2-pin net
         // compute wl
 
         // collect candidates for Steiner points
         set<Pos3d> steiner_points = collect_steiner_points(net);
         for(Pos3d sp : steiner_points){
-            vertex_list.push_back(new Vertex(sp));
             // global route: build minimum spanning tree
-            GlobalRouter gRouter(vertex_list);
-            vector<Edge*> edge_list = gRouter.global_route();
             // detail route: find a route for each 2-pin net
             // compute wl
             // remove the steiner points if wl doesn't decrease
