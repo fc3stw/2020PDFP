@@ -58,7 +58,7 @@ gGrid& Layer::get_grid(int row, int col) {return _gGrid2d[row][col];}
 
 Chip::Chip():
 	_row_begin_idx(0),
-	_col_begin_idx(c0egin),
+	_col_begin_idx(0),
 	_num_rows(0),
 	_num_cols(0)
 {}
