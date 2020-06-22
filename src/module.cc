@@ -145,12 +145,15 @@ vector<Pin>& MasterCell::get_pins() {return _pin_list;}
 
 vector<Blockage>& MasterCell::get_blkgs() {return _blkg_list;}
 
+int MasterCell::get_pin_by_name(string name) const {return _pin_name2id.at(name);}
+
 void MasterCell::set_id(int val) {_id = val;}
 
 void MasterCell::add_pin(string name, int id, int layer_id)
 {
     _pin_list.push_back(
         Pin(name, id, nullptr, layer_id));
+    _pin_name2id[name] = id;
 }
 
 void MasterCell::add_blkg(string name, int id, int layer_id, int demand)

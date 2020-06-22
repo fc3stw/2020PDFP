@@ -117,6 +117,7 @@ class MasterCell{
 	int _id;
 	vector<Pin> _pin_list;
 	vector<Blockage> _blkg_list;
+	map<string, int> _pin_name2id;
 public:
 	MasterCell(string name, int id);
 
@@ -124,6 +125,7 @@ public:
 	int get_id() const;
 	vector<Pin>& get_pins();
 	vector<Blockage>& get_blkgs();
+	int get_pin_by_name(string name) const;
 
 	void set_id(int val);
 	void add_pin(string name, int id, int layer_id);
