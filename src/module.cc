@@ -17,6 +17,8 @@ int gGrid::get_remain_supply() const {return _supply - _demand;}
 
 set<int>& gGrid::get_nets() {return _nets;}
 
+void gGrid::add_supply(int val) {_supply += val;}
+
 bool gGrid::add_demand(int val)
 {
     int new_demand = _demand + val;
@@ -64,6 +66,18 @@ int Chip::get_num_rows() const {return _num_rows;}
 int Chip::get_num_cols() const {return _num_cols;}
 
 gGrid& Chip::get_grid(Pos3d pos) {return _layer_list.at(get<0>(pos)).get_grid(get<1>(pos), get<2>(pos));}
+
+bool Chip::has_grid(Pos3d pos)
+{
+    int layer, row, col;
+    tie(layer, row, col) = pos;
+    if(layer < 0 || layer > _layer_list.size()-1) return false;
+    if(row < 0 || row > _num_rows-1) return false;
+    if(col < 0 || col > _num_cols-1) return false;
+    return true;
+}
+
+Direction Chip::get_layer_dir(int layer_id) {return layer_id % 2;}
 
 void Chip::add_layer(string name, int supply)
 {

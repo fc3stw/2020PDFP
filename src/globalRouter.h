@@ -8,9 +8,9 @@ class GlobalRouter{
     RoutingGraph _original_graph;
     RoutingGraph _mst;
 public:
-    GlobalRouter(RoutingGraph &original_graph);
+    GlobalRouter(const RoutingGraph &original_graph);
 
     RoutingGraph get_mst() const;
 
-    void global_route();
+    void route();
 };

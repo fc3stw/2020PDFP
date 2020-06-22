@@ -42,6 +42,7 @@ public:
 	int get_remain_supply() const;
 	set<int>& get_nets();
 
+	void add_supply(int val);
 	bool add_demand(int val);
 	void add_net(int net_id);
 };
@@ -67,14 +68,14 @@ class Chip{
 	int _num_rows;
 	int _num_cols;
 	vector<Layer> _layer_list;
-
-	Direction get_layer_dir(int layer_id){return layer_id % 2;}
 public:
 	Chip(int row_begin, int col_begin, int row_end, int col_end);
 
 	int get_num_rows() const;
 	int get_num_cols() const;
 	gGrid& get_grid(Pos3d pos);
+	bool has_grid(Pos3d pos);
+	Direction get_layer_dir(int layer_id);
 
 	void add_layer(string name, int supply);
 };
