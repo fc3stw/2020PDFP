@@ -24,6 +24,8 @@ class Router{
 public:
     Router(Chip &chip, vector<Net*> &net_list);
 
+    int get_total_wl() const;
+
     void routing_flow();
     void ripup_all_routes();
     void add_net_on_grids();

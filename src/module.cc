@@ -1,5 +1,5 @@
 #include "module.h"
-
+#include <iostream>
 
 // class gGrid
 
@@ -63,6 +63,10 @@ Chip::Chip():
 	_num_cols(0)
 {}
 
+int Chip::get_row_offset() const {return _row_begin_idx;}
+
+int Chip::get_col_offset() const {return _col_begin_idx;}
+
 int Chip::get_num_rows() const {return _num_rows;}
 
 int Chip::get_num_cols() const {return _num_cols;}
@@ -105,6 +109,14 @@ void Chip::add_layer(string name, int supply)
     _layer_name2id[name] = layer_id;
 }
 
+void Chip::print_summary()
+{
+    cout<<"\nChip info:\n";
+    cout<<"#rows: "<<get_num_rows()<<", start from "<<get_row_offset()<<"\n";
+    cout<<"#cols: "<<get_num_cols()<<", start from "<<get_col_offset()<<"\n";
+    cout<<"#layers: "<<get_num_layers()<<"\n";
+}
+
 
 // class Pin
 
@@ -114,6 +126,8 @@ Pin::Pin(string name, int id, CellInstance *cell, int layer_id):
 	_cell(cell),
 	_layer_id(layer_id)
 {}
+
+string Pin::get_name() const {return _name;}
 
 Pos3d Pin::get_pos() const {return Pos3d(_layer_id, _cell->get_row(), _cell->get_col());}
 
@@ -133,6 +147,8 @@ Blockage::Blockage(string name, int id, CellInstance *cell, int layer_id, int de
 	_layer_id(layer_id),
 	_demand(demand)
 {}
+
+string Blockage::get_name() const {return _name;}
 
 Pos3d Blockage::get_pos() const {return Pos3d(_layer_id, _cell->get_row(), _cell->get_col());}
 
@@ -243,6 +259,17 @@ void CellInstance::set_pos(int row, int col)
 
 void CellInstance::set_hpwl_cost(int val) {_hpwl_cost = val;}
 
+void CellInstance::print()
+{
+    cout<<"Cell #"<<get_id()<<" "<<get_name()<<" ("<<get_row()<<","<<get_col()<<") fixed: "<<is_fixed()<<"\n";
+    for(Pin *pin : _pin_list){
+        cout<<"  Pin "<<pin->get_name()<<" layer: "<<get<0>(pin->get_pos())<<"\n";
+    }
+    for(Blockage *blkg : _blkg_list){
+        cout<<"  Blockage "<<blkg->get_name()<<" layer: "<<get<0>(blkg->get_pos())<<" demand: "<<blkg->get_demand()<<"\n";
+    }
+}
+
 
 // class Net
 
@@ -278,6 +305,11 @@ void Net::add_pin(Pin *pin)
 }
 
 void Net::add_route(Pos3d pos) {_route.push_back(pos);}
+
+void Net::print()
+{
+    cout<<"Net #"<<get_id()<<" "<<get_name()<<", #pins="<<get_num_pins()<<"\n";
+}
 
 
 // class CellLibrary
@@ -353,6 +385,12 @@ CellInstance* Design::get_cell_by_name(string name) const {return _cell_list.at(
 
 Net* Design::get_net_by_name(string name) const {return _net_list.at(_net_name2id.at(name));}
 
+int Design::get_max_cell_move() const {return _max_cell_move;}
+
+int Design::get_num_moved_cells() const {return _moved_cell_id.size();}
+
+bool Design::cell_is_moved(int cell_id) const {return _moved_cell_id.find(cell_id)!=_moved_cell_id.end();}
+
 void Design::set_max_cell_move(int val) {_max_cell_move = val;}
 
 void Design::add_cell(CellInstance *cell){
@@ -367,4 +405,20 @@ void Design::add_net(Net *net){
     net->set_id(id);
     _net_list.push_back(net);
     _net_name2id[net->get_name()] = id;
+}
+
+void Design::move_cell(int cell_id) {_moved_cell_id.insert(cell_id);}
+
+void Design::print_summary()
+{
+    cout<<"\nDesign info:\n";
+    cout<<"max #cell moves: "<<get_max_cell_move()<<"\n";
+    cout<<"cell info:\n";
+    for(CellInstance *cell : _cell_list){
+        cell->print();
+    }
+    cout<<"net info:\n";
+    for(Net *net : _net_list){
+        net->print();
+    }
 }

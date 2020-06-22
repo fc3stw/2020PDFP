@@ -168,7 +168,7 @@ bool Placement::another_move(CellInstance* cell, int row, int column)
 
 bool Placement::update_demand(CellInstance* cell, int row, int column)
 {
-  vector<gGrid&> history_grid;
+  vector<gGrid*> history_grid;
   vector<int> history_gain;
   history_grid.clear();
   history_gain.clear();
@@ -179,11 +179,11 @@ bool Placement::update_demand(CellInstance* cell, int row, int column)
     if(!grid.add_demand(blk -> get_demand())){
       for (int i = 0; i < history_gain.size(); ++i)
       {
-        history_grid[i].add_demand(-history_gain[i]);
+        history_grid[i]->add_demand(-history_gain[i]);
       }
       return false;
     }//update demand in this grid
-    history_grid.push_back(grid);
+    history_grid.push_back(&grid);
     history_gain.push_back(blk -> get_demand());
   }
   cell -> set_pos(row, column);//update cell location
@@ -204,7 +204,7 @@ void Placement::reset_demand()
   }
 
   for(int cell_id = 0; cell_id < _design.get_num_cells(); cell_id++){
-    CellInstance* cell = _design.get_cell_by_id[cell_id];
+    CellInstance* cell = _design.get_cell_by_id(cell_id);
     for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){
       Blockage* blk = cell -> get_blkg(blk_id);//get block
       Pos3d position = blk->get_pos();//find where is the blk

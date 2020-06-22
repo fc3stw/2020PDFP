@@ -33,6 +33,15 @@ Router::Router(Chip &chip, vector<Net*> &net_list):
     _net_list(net_list)
 {}
 
+int Router::get_total_wl() const
+{
+    int wl = 0;
+    for(Net *net : _net_list){
+        wl += net->get_route().size();
+    }
+    return wl;
+}
+
 bool sort_net_by_hpwl(Net *n1, Net *n2) {return n1->get_hpwl() > n2->get_hpwl();}
 
 void Router::routing_flow()

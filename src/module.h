@@ -73,6 +73,8 @@ class Chip{
 public:
 	Chip();
 
+	int get_row_offset() const;
+	int get_col_offset() const;
 	int get_num_rows() const;
 	int get_num_cols() const;
 	int get_num_layers() const;
@@ -83,6 +85,8 @@ public:
 
 	void set_layer_info(int row_begin, int col_begin, int row_end, int col_end);
 	void add_layer(string name, int supply);
+
+	void print_summary();
 };
 
 class Pin{
@@ -94,6 +98,7 @@ class Pin{
 public:
 	Pin(string name, int id, CellInstance *cell, int layer_id);
 
+	string get_name() const;
 	Pos3d get_pos() const;
 	int get_num_nets() const;
 	Net* get_net(int idx);
@@ -110,6 +115,7 @@ class Blockage{
 public:
 	Blockage(string name, int id, CellInstance *cell, int layer_id, int demand);
 
+	string get_name() const;
 	Pos3d get_pos() const;
 	int get_demand() const;
 };
@@ -165,6 +171,8 @@ public:
 	void set_pos(Pos2d pos);
 	void set_pos(int row, int col);
 	void set_hpwl_cost(int val);
+
+	void print();
 };
 
 class Net{
@@ -189,6 +197,8 @@ public:
 	void set_hpwl(int val);
 	void add_pin(Pin *pin); // remember to add net pin on gGrid
 	void add_route(Pos3d pos);
+	
+	void print();
 };
 
 class CellLibrary{
@@ -249,8 +259,15 @@ public:
 	CellInstance* get_cell_by_name(string name) const;
 	Net* get_net_by_name(string name) const;
 
+	int get_max_cell_move() const;
+	int get_num_moved_cells() const;
+	bool cell_is_moved(int cell_id) const;
+
 	void set_max_cell_move(int val);
 
 	void add_cell(CellInstance *cell);
 	void add_net(Net *net);
+	void move_cell(int cell_id);
+
+	void print_summary();
 };

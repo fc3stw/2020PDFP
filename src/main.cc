@@ -1,6 +1,8 @@
 #include <iostream>
 #include <fstream>
-#include "module.h"
+#include <vector>
+#include "placement.h"
+
 
 using namespace std;
 
@@ -35,14 +37,16 @@ int main(int argc, char** argv){
  	int row_begin, col_begin, row_end, col_end; 
     while(input >> str){
     	if (str == "MaxCellMove"){
-	    	input >> str;
+	    	// cout<<"MaxCellMove"<<endl;
+			input >> str;
 	    	max_cell_move = atoi(str.c_str());
 	    	design.set_max_cell_move(max_cell_move);
 	    }
 
 	    if (str == "GGridBoundaryIdx")
 	    {
-	    	input >> str;
+	    	// cout<<"GGridBoundaryIdx"<<endl;
+			input >> str;
 	    	row_begin = atoi(str.c_str());
 	    	input >> str;
 	    	col_begin = atoi(str.c_str());
@@ -55,7 +59,8 @@ int main(int argc, char** argv){
 
 	    if (str == "NumLayer")
 	    {
-	    	input >> str;
+	    	// cout<<"NumLayer"<<endl;
+			input >> str;
 	    	int layer_cnt = atoi(str.c_str());
 	    	for (int i = 0; i < layer_cnt; ++i)
 	    	{
@@ -72,16 +77,17 @@ int main(int argc, char** argv){
 
 	    if (str == "NumNonDefaultSupplyGGrid")
 	    {
-	    	input >> str;
+	    	// cout<<"NumNonDefaultSupplyGGrid"<<endl;
+			input >> str;
 	    	int non_default_cnt = atoi(str.c_str());
 	    	for (int i = 0; i < non_default_cnt; ++i)
 	    	{
 	    		input >> str;
-	    		int row_idx = atoi(str.c_str());
+	    		int row_idx = atoi(str.c_str()) - chip.get_row_offset();
 	    		input >> str;
-	    		int col_idx = atoi(str.c_str());
+	    		int col_idx = atoi(str.c_str()) - chip.get_col_offset();
 	    		input >> str;
-	    		int lay_idx = atoi(str.c_str());
+	    		int lay_idx = atoi(str.c_str()) - 1;
 	    		input >> str;
 	    		int value = atoi(str.c_str());
 	    		gGrid &g = chip.get_grid(Pos3d(lay_idx, row_idx, col_idx));
@@ -91,7 +97,8 @@ int main(int argc, char** argv){
 
 	    if (str == "NumMasterCell")
 	    {
-	    	input >> str;
+	    	// cout<<"NumMasterCell"<<endl;
+			input >> str;
 	    	int master_cell_cnt = atoi(str.c_str());
 	    	for (int i = 0; i < master_cell_cnt; ++i)
 	    	{
@@ -131,7 +138,8 @@ int main(int argc, char** argv){
 
 	    if (str == "NumCellInst")
 	    {
-	    	input >> str;
+	    	// cout<<"NumCellInst"<<endl;
+			input >> str;
 	    	int cell_num = atoi(str.c_str());
 	    	for (int j = 0; j < cell_num; ++j)
 	    	{
@@ -143,9 +151,9 @@ int main(int argc, char** argv){
 	    		MasterCell ms = celllibrary.get_master_cell_by_name(str, success);
 	    		if(success == false) cerr<<"SOMETHING WRONG"<<endl;
 	    		input >> str;
-	    		int row_idx = atoi(str.c_str());
+	    		int row_idx = atoi(str.c_str()) - chip.get_row_offset();
 	    		input >> str;
-	    		int col_idx = atoi(str.c_str());
+	    		int col_idx = atoi(str.c_str()) - chip.get_col_offset();
 	    		input >> str;
 	    		bool fixed;
 	    		if (str == "Fixed") fixed = true;
@@ -158,7 +166,8 @@ int main(int argc, char** argv){
 
 	    if (str == "NumNets")
 	    {
-	    	input >> str;
+	    	// cout<<"NumNets"<<endl;
+			input >> str;
 	    	int net_num = atoi(str.c_str());
 	    	for (int i = 0; i < net_num; ++i)
 	    	{
@@ -188,7 +197,7 @@ int main(int argc, char** argv){
 		    		}
 	
 	    		}
-	    	
+	    		design.add_net(net);
 	    	}
 	    }
 	    // if (str == "NumRoutes")
@@ -216,7 +225,39 @@ int main(int argc, char** argv){
 	    	
 	    // }
     }
+	design.print_summary();
+	chip.print_summary();
+	exit(1);
 
+	// initialize placer and router
+	Placement placer(design, chip);
+	vector<Net*> net_list;
+	int num_nets = design.get_num_nets();
+	for(int net_id = 0; net_id < num_nets; net_id++){
+		net_list.push_back(
+			design.get_net_by_id(net_id));
+	}
+	Router router(chip, net_list);
+
+	placer.reset_demand();
+	placer.set_HPWL_for_nets();
+	int wl = -1;
+	while(true){
+		router.routing_flow();
+		int new_wl = router.get_total_wl();
+		if(wl==-1){
+			wl = new_wl;
+			cout<<"Initial wire length = "<<wl<<endl;
+		}
+		else if(new_wl >= wl) break;
+
+		placer.set_HPWL_for_cells();
+		bool move_success = placer.move_cell();
+		if(!move_success){
+			break;
+		}
+	}
+	cout<<"Final wire length = "<<wl<<endl;
 
     return 0;
 }
