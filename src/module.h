@@ -147,6 +147,7 @@ public:
 
 	string get_name() const;
 	int get_id() const;
+	int get_master_cell_id() const;
 	bool is_fixed() const;
 	int get_row() const;
 	int get_col() const;

@@ -193,6 +193,8 @@ string CellInstance::get_name() const {return _name;}
 
 int CellInstance::get_id() const {return _id;}
 
+int CellInstance::get_master_cell_id() const {return _master_cell_id;}
+
 bool CellInstance::is_fixed() const {return _fixed;}
 
 int CellInstance::get_row() const {return _row;}
