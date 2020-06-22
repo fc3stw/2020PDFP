@@ -282,6 +282,8 @@ MasterCell CellLibrary::get_master_cell_by_name(string name, bool &success) cons
     return _master_cell_list.at(id);
 }
 
+MasterCell CellLibrary::get_master_cell_by_id(int id) const {return _master_cell_list.at(id);}
+
 void CellLibrary::add_master_cell(MasterCell ms)
 {
     int id = _master_cell_list.size();

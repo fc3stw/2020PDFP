@@ -200,6 +200,7 @@ public:
 	CellLibrary();
 
 	MasterCell get_master_cell_by_name(string name, bool &success) const;
+	MasterCell get_master_cell_by_id(int id) const;
 
 	void add_master_cell(MasterCell ms);
 };
