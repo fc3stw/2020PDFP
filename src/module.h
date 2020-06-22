@@ -68,6 +68,7 @@ class Chip{
 	int _num_rows;
 	int _num_cols;
 	vector<Layer> _layer_list;
+	map<string, int> _layer_name2id;
 public:
 	Chip(int row_begin, int col_begin, int row_end, int col_end);
 
@@ -76,6 +77,7 @@ public:
 	gGrid& get_grid(Pos3d pos);
 	bool has_grid(Pos3d pos);
 	Direction get_layer_dir(int layer_id);
+	int get_layer_by_name(string name) const;
 
 	void add_layer(string name, int supply);
 };

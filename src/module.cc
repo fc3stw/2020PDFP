@@ -79,11 +79,18 @@ bool Chip::has_grid(Pos3d pos)
 
 Direction Chip::get_layer_dir(int layer_id) {return layer_id % 2;}
 
+int Chip::get_layer_by_name(string name) const
+{
+    if(_layer_name2id.find(name)==_layer_name2id.end()) return -1;
+    return _layer_name2id.at(name);
+}
+
 void Chip::add_layer(string name, int supply)
 {
     int layer_id = _layer_list.size();
     _layer_list.push_back(
         Layer(name, layer_id, get_layer_dir(layer_id), supply, _num_rows, _num_cols));
+    _layer_name2id[name] = layer_id;
 }
 
 
