@@ -133,13 +133,17 @@ bool Placement::another_move(CellInstance* cell, int row, int column)
                 tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
                 int current_blk_demand = blk -> get_demand();
                 gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
-                int candidate_grid_remain_supply = grid.get_remain_supply();
-                int candidate_grid_remain_supply_aftermove = candidate_grid_remain_supply - current_blk_demand;
-                cell_supply_sum += candidate_grid_remain_supply_aftermove;
-                if(candidate_grid_remain_supply_aftermove < 0){
-                    cell_supply_sum = INT_MIN;
-                    break;
-                }   
+                if(!grid.add_demand(current_blk_demand)){//Add demand, if the grid is full, we should restore all operate
+                    cell_supply_sum = INT_MIN;//The row,col is eliminate
+                    for(int i = 0; i <= blk_id; i++){
+                        Blockage* blk = cell->get_blkg(blk_id);
+                        tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
+                        gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                        if (!grid.add_demand(-(blk->get_demand()))){cerr<<"ERROR IN RESTORE DEMAND"<<endl;}                        
+                    }
+                    break; 
+                } 
+                cell_supply_sum += grid.get_remain_supply();
             }
             if(cell_supply_sum > max_cell_supply_sum){
                 max_cell_supply_sum = cell_supply_sum;
