@@ -44,6 +44,7 @@ public:
 
 	void add_supply(int val);
 	bool add_demand(int val);
+	void clear_demand();
 	void add_net(int net_id);
 };
 
@@ -74,6 +75,7 @@ public:
 
 	int get_num_rows() const;
 	int get_num_cols() const;
+	int get_num_layers() const;
 	gGrid& get_grid(Pos3d pos);
 	bool has_grid(Pos3d pos);
 	Direction get_layer_dir(int layer_id);
@@ -237,7 +239,7 @@ class Design{
 	map<string, int> _cell_name2id;
 	map<string, int> _net_name2id;
 public:
-	Design(int max_cell_move, int num_cells, int num_nets);
+	Design(int max_cell_move);
 
 	int get_num_cells() const;
 	int get_num_nets() const;

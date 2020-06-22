@@ -13,6 +13,8 @@ Pos3d gGrid::get_pos() const {return _pos;}
 
 int gGrid::get_demand() const {return _demand;}
 
+void gGrid::clear_demand() {_demand = 0;}
+
 int gGrid::get_remain_supply() const {return _supply - _demand;}
 
 set<int>& gGrid::get_nets() {return _nets;}
@@ -64,6 +66,8 @@ Chip::Chip(int row_begin, int col_begin, int row_end, int col_end):
 int Chip::get_num_rows() const {return _num_rows;}
 
 int Chip::get_num_cols() const {return _num_cols;}
+
+int Chip::get_num_layers() const {return _layer_list.size();}
 
 gGrid& Chip::get_grid(Pos3d pos) {return _layer_list.at(get<0>(pos)).get_grid(get<1>(pos), get<2>(pos));}
 
@@ -326,7 +330,7 @@ void ExtraDemand::add_adj_demand(int ms1, int ms2, int layer, int demand)
 
 // class Design
 
-Design::Design(int max_cell_move, int num_cells, int num_nets) :
+Design::Design(int max_cell_move):
 	_max_cell_move(max_cell_move)
 {
     _cell_list.clear();
