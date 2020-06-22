@@ -71,7 +71,7 @@ class Chip{
 	vector<Layer> _layer_list;
 	map<string, int> _layer_name2id;
 public:
-	Chip(int row_begin, int col_begin, int row_end, int col_end);
+	Chip();
 
 	int get_num_rows() const;
 	int get_num_cols() const;
@@ -81,6 +81,7 @@ public:
 	Direction get_layer_dir(int layer_id);
 	int get_layer_by_name(string name) const;
 
+	void set_layer_info(int row_begin, int col_begin, int row_end, int col_end);
 	void add_layer(string name, int supply);
 };
 
@@ -231,15 +232,13 @@ public:
 
 class Design{
 	int _max_cell_move;
-	int num_cells;
-	int num_nets;
 	vector<CellInstance*> _cell_list;
 	vector<Net*> _net_list;
 	set<int> _moved_cell_id;
 	map<string, int> _cell_name2id;
 	map<string, int> _net_name2id;
 public:
-	Design(int max_cell_move);
+	Design();
 
 	int get_num_cells() const;
 	int get_num_nets() const;
@@ -249,6 +248,8 @@ public:
 
 	CellInstance* get_cell_by_name(string name) const;
 	Net* get_net_by_name(string name) const;
+
+	void set_max_cell_move(int val);
 
 	void add_cell(CellInstance *cell);
 	void add_net(Net *net);

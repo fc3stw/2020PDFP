@@ -56,11 +56,11 @@ gGrid& Layer::get_grid(int row, int col) {return _gGrid2d[row][col];}
 
 // class Chip
 
-Chip::Chip(int row_begin, int col_begin, int row_end, int col_end):
-	_row_begin_idx(row_begin),
-	_col_begin_idx(col_begin),
-	_num_rows(row_end - row_begin + 1),
-	_num_cols(col_end - col_begin + 1)
+Chip::Chip():
+	_row_begin_idx(0),
+	_col_begin_idx(c0egin),
+	_num_rows(0),
+	_num_cols(0)
 {}
 
 int Chip::get_num_rows() const {return _num_rows;}
@@ -87,6 +87,14 @@ int Chip::get_layer_by_name(string name) const
 {
     if(_layer_name2id.find(name)==_layer_name2id.end()) return -1;
     return _layer_name2id.at(name);
+}
+
+void Chip::set_layer_info(int row_begin, int col_begin, int row_end, int col_end)
+{
+    _row_begin_idx = row_begin;
+    _col_begin_idx = col_begin;
+    _num_rows = row_end - row_begin + 1;
+    _num_cols = col_end - col_begin + 1;
 }
 
 void Chip::add_layer(string name, int supply)
@@ -329,16 +337,9 @@ void ExtraDemand::add_adj_demand(int ms1, int ms2, int layer, int demand)
 
 
 // class Design
-
-Design::Design(int max_cell_move):
-	_max_cell_move(max_cell_move)
-{
-    _cell_list.clear();
-    _net_list.clear();
-    _moved_cell_id.clear();
-    _cell_name2id.clear();
-    _net_name2id.clear();
-}
+Design::Design():
+    _max_cell_move(0)
+{}
 
 int Design::get_num_cells() const {return _cell_list.size();}
 
@@ -351,6 +352,8 @@ Net* Design::get_net_by_id(int id) const {return _net_list.at(id);}
 CellInstance* Design::get_cell_by_name(string name) const {return _cell_list.at(_cell_name2id.at(name));}
 
 Net* Design::get_net_by_name(string name) const {return _net_list.at(_net_name2id.at(name));}
+
+void Design::set_max_cell_move(int val) {_max_cell_move = val;}
 
 void Design::add_cell(CellInstance *cell){
     int id = _cell_list.size();
