@@ -25,6 +25,8 @@ public:
     Router(Chip &chip, vector<Net*> &net_list);
 
     void routing_flow();
+    void ripup_all_routes();
+    void add_net_on_grids();
     void global_route();
     void detail_route();
     set<Pos3d> collect_steiner_points(Net *net);

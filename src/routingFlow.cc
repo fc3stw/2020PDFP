@@ -37,6 +37,9 @@ bool sort_net_by_hpwl(Net *n1, Net *n2) {return n1->get_hpwl() > n2->get_hpwl();
 
 void Router::routing_flow()
 {
+    ripup_all_routes();
+    add_net_on_grids();
+
     // sort net by wl
     sort(_net_list.begin(), _net_list.end(), sort_net_by_hpwl);
 
@@ -45,6 +48,38 @@ void Router::routing_flow()
 
     // detail route: find a route for each Steiner tree
     detail_route();
+}
+
+void Router::ripup_all_routes()
+{
+    for(Net *net : _net_list){
+        net->get_route().clear();
+    }
+}
+
+void Router::add_net_on_grids()
+{
+    // clear net on all grids
+    int num_layers = _chip.get_num_layers();
+    int num_rows = _chip.get_num_rows();
+    int num_cols = _chip.get_num_cols();
+    for(int layer = 0; layer < num_layers; layer++){
+        for(int row = 0; row < num_rows; row++){
+            for(int col = 0; col < num_cols; col++){
+                _chip.get_grid(Pos3d(layer, row, col)).get_nets().clear();
+            }
+        }
+    }
+    
+    // add net on grids
+    for(Net *net : _net_list){
+        int net_id = net->get_id();
+        int num_pins = net->get_num_pins();
+        for(int pid = 0; pid < num_pins; pid++){
+            Pos3d pos = net->get_pin(pid)->get_pos();
+            _chip.get_grid(pos).add_net(net_id);
+        }
+    }
 }
 
 void Router::global_route()
@@ -135,6 +170,9 @@ void Router::detail_route()
             net_route.insert(edge_route->_grids.begin(), edge_route->_grids.end());
             delete edge_route;
         }
+
+        // remove redundant routing grid by steiner point
+        // TODO
 
         for(Pos3d pos : net_route){
             net->add_route(pos);
@@ -261,10 +299,13 @@ bool Router::check_new_route(int net_id, Route *route, Pos3d wavefront)
     if(route->_grids.find(wavefront)!=route->_grids.end()) return false;
     // check remain supply
     set<int> &net_ids = _chip.get_grid(wavefront).get_nets();
-    int net_cnt = net_ids.size();
-    // exclude the net of the route
-    if(net_ids.find(net_id)!=net_ids.end()) net_cnt--;
-    if(_chip.get_grid(wavefront).get_remain_supply() - net_cnt <= 0) return false;
+    int unrouted_net_cnt = 0;
+    for(int nid : net_ids){
+        if(nid==net_id) continue;
+        if(!_net_list.at(nid)->get_route().empty()) continue;
+        unrouted_net_cnt++;
+    }
+    if(_chip.get_grid(wavefront).get_remain_supply() - unrouted_net_cnt <= 0) return false;
     
     return true;
 }
