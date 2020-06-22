@@ -51,13 +51,14 @@ void Placement::set_HPWL_for_cells()
         cell_cost_list.insert(pair<int, int>(cellinstance_HPWL, cell_id));
     }
 }
-void Placement::move_cell()
+bool Placement::move_cell()
 {
     map<int,int>::iterator iter;
     for (iter = cell_cost_list.begin(); iter != cell_cost_list.end(); iter++)
     {
        int id = iter->second;//cell_id
        CellInstance* current_cell = _design.get_cell_by_id(id);
+       if(current_cell->is_fixed()) continue;
        minus_demand(current_cell);
        //Process one cell new position use zero force
        int layer_id = 0;
@@ -90,15 +91,15 @@ void Placement::move_cell()
        col = col_sum / pin_count;
        if(update_demand(current_cell, row, col)){
            cout<<"SUCCESSFULLY MOVE"<<endl;
-           break;
+           return true;
        } 
        if(another_move(current_cell, row, col)){
            cout<<"SUCCESSFULLY MOVE"<<endl;
-           break;
+           return true;
        } 
        else continue;
     }
-    return;
+    return false;
 }
 void Placement::minus_demand(CellInstance* cell)
 {
@@ -107,7 +108,7 @@ void Placement::minus_demand(CellInstance* cell)
     {
         Blockage* blk = cell->get_blkg(i);
         Pos3d position = blk->get_pos();
-        gGrid grid = _chip.get_grid(position);
+        gGrid &grid = _chip.get_grid(position);
         if (!grid.add_demand(-(blk->get_demand())))
         {
             cerr<<"ERROR IN GRID DEMAND"<<endl;
@@ -132,13 +133,13 @@ bool Placement::another_move(CellInstance* cell, int row, int column)
                 Blockage* blk = cell->get_blkg(blk_id);
                 tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
                 int current_blk_demand = blk -> get_demand();
-                gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                gGrid &grid = _chip.get_grid(Pos3d(layer_id, r, c));
                 if(!grid.add_demand(current_blk_demand)){//Add demand, if the grid is full, we should restore all operate
                     cell_supply_sum = INT_MIN;//The row,col is eliminate
-                    for(int i = 0; i <= blk_id; i++){
-                        Blockage* blk = cell->get_blkg(blk_id);
+                    for(int i = 0; i < blk_id; i++){ //modify <= to <
+                        Blockage* blk = cell->get_blkg(i); //modify blk_id to i
                         tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
-                        gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                        gGrid &grid = _chip.get_grid(Pos3d(layer_id, r, c));
                         if (!grid.add_demand(-(blk->get_demand()))){cerr<<"ERROR IN RESTORE DEMAND"<<endl;}                        
                     }
                     break; 
@@ -167,14 +168,14 @@ bool Placement::another_move(CellInstance* cell, int row, int column)
 
 bool Placement::update_demand(CellInstance* cell, int row, int column)
 {
-  vector<gGrid> history_grid;
+  vector<gGrid&> history_grid;
   vector<int> history_gain;
   history_grid.clear();
   history_gain.clear();
   for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){ //All blk cell connected
     Blockage* blk = cell -> get_blkg(blk_id);//get block
     Pos3d position = blk->get_pos();//find where is the blk
-    gGrid grid = _chip.get_grid(position);//go to this grid 
+    gGrid &grid = _chip.get_grid(position);//go to this grid 
     if(!grid.add_demand(blk -> get_demand())){
       for (int i = 0; i < history_gain.size(); ++i)
       {
@@ -188,3 +189,28 @@ bool Placement::update_demand(CellInstance* cell, int row, int column)
   cell -> set_pos(row, column);//update cell location
   return true;
 } 
+
+void Placement::reset_demand()
+{
+  int num_layers = _chip.get_num_layers();
+  int num_rows = _chip.get_num_rows();
+  int num_cols = _chip.get_num_cols();
+  for(int layer = 0; layer < num_layers; layer++){
+      for(int row = 0; row < num_rows; row++){
+          for(int col = 0; col < num_cols; col++){
+              _chip.get_grid(Pos3d(layer, row, col)).clear_demand();
+          }
+      }
+  }
+
+  for(int cell_id = 0; cell_id < _design.get_num_cells(); cell_id++){
+    CellInstance* cell = _design.get_cell_by_id[cell_id];
+    for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){
+      Blockage* blk = cell -> get_blkg(blk_id);//get block
+      Pos3d position = blk->get_pos();//find where is the blk
+      gGrid &grid = _chip.get_grid(position);//go to this grid 
+      if(!grid.add_demand(blk -> get_demand())) cerr<<"ERROR IN GRID DEMAND"<<endl;
+    }
+  }
+  return;
+}
