@@ -1,6 +1,8 @@
 #include "placement.h"
 #include <climits>
 #include <iostream>
+#include <algorithm>
+#include <cmath>
 
 void Placement::set_HPWL_for_nets()
 {
@@ -31,7 +33,8 @@ void Placement::set_HPWL_for_nets()
 }
 void Placement::set_HPWL_for_cells()
 {
-    cell_cost_list.erase(cell_cost_list.begin(), cell_cost_list.end());
+    //cout<<"set_HPWL_for_cells"<<endl;
+    cell_cost_list.clear();
 
 	/*==set_HPWL_for_cells==*/
     for(int cell_id = 0; cell_id < _design.get_num_cells(); cell_id++){
@@ -48,16 +51,25 @@ void Placement::set_HPWL_for_cells()
            cellinstance_HPWL += net -> get_hpwl(); 
         }
         cell -> set_hpwl_cost(cellinstance_HPWL);
-        cell_cost_list.insert(pair<int, int>(cellinstance_HPWL, cell_id));
+        cell_cost_list.push_back(pair<int, int>(cellinstance_HPWL, cell_id));
     }
+    sort(cell_cost_list.begin(), cell_cost_list.end());
+      int totalcost = 0;
+    for (auto pos: cell_cost_list)
+    {
+      totalcost += pos.first;
+      //cout<<"Cost: "<<pos.first<<", Cell ID: "<<pos.second<<endl;
+    }
+    cout<<"TOTAL: "<<totalcost<<endl;
 }
 bool Placement::move_cell()
 {
-    map<int,int>::iterator iter;
-    for (iter = cell_cost_list.begin(); iter != cell_cost_list.end(); iter++)
+    vector<pair<int, int> >::reverse_iterator iter;
+    for (iter = cell_cost_list.rbegin(); iter != cell_cost_list.rend(); iter++)
     {
        int id = iter->second;//cell_id
        CellInstance* current_cell = _design.get_cell_by_id(id);
+       //cout<<"CELL ID: "<<current_cell->get_id()<<endl;
        if(current_cell->is_fixed()) continue;
        minus_demand(current_cell);
        //Process one cell new position use zero force
@@ -65,8 +77,8 @@ bool Placement::move_cell()
        int row  = 0;
        int col = 0; 
        //int layer_id_sum = 0;
-       int row_sum = 0;
-       int col_sum = 0;
+       double row_sum = 0;
+       double col_sum = 0;
        int pin_count = 0;
        for(int pin_id = 0 ; pin_id < current_cell -> get_num_pins(); pin_id++){//The pin cell connect  
            Pin* pin = current_cell -> get_pin(pin_id);//get pin for current cell
@@ -75,43 +87,75 @@ bool Placement::move_cell()
                 int num_pins = net -> get_num_pins();//This net connect which pins
                 int num_pins_minus1 = num_pins - 1;
                 for(int pin_id_other = 0; pin_id_other < num_pins; pin_id_other++){
-                    if(pin_id_other != pin_id){ //Don't calculate current cell
-                        Pin* pin_connected =  net -> get_pin(pin_id_other);
+                    Pin* pin_connected =  net -> get_pin(pin_id_other);
+                    if(pin_connected != pin){ //Don't calculate current cell  
                         tie(layer_id, row, col) = pin_connected -> get_pos();
                         //layer_id_sum += num_pins_minus1*layer_id;
-                        row_sum += num_pins_minus1*row;
-                        col_sum += num_pins_minus1*col; 
+                        //cout<<"ROW: "<<row<<", COL: "<<col<<endl;
+                        row_sum += row;
+                        col_sum += col; 
                     }
                 }
+                //cout<<"num_pins_minus1: "<<num_pins_minus1<<", row_sum: "<<row_sum<<", col_sum: "<<col_sum<<endl;
                 pin_count += num_pins_minus1;
            }              
        }
        //layer = layer_id_sum / pin_count;
-       row = row_sum / pin_count;
-       col = col_sum / pin_count;
+       row = round(row_sum / pin_count);
+       col = round(col_sum / pin_count);
+       //cout<<"ROW: "<<row<<", COL: "<<col<<endl;
        if(update_demand(current_cell, row, col)){
-           cout<<"SUCCESSFULLY MOVE"<<endl;
+           cout<<"SUCCESSFULLY MOVE CURRENT"<<endl;
+           _design.move_cell(current_cell->get_id());
            return true;
        } 
        if(another_move(current_cell, row, col)){
-           cout<<"SUCCESSFULLY MOVE"<<endl;
+           cout<<"SUCCESSFULLY MOVE EIGHT"<<endl;
+           _design.move_cell(current_cell->get_id());
            return true;
        } 
-       else continue;
+       else{
+          restore_demand(current_cell);
+          continue;
+       } 
     }
     return false;
 }
 void Placement::minus_demand(CellInstance* cell)
+{
+  //cout<<"minus_demand"<<endl;
+    int blkgs_num =  cell->get_num_blkgs();
+    //cout<<"blkgs_num: "<<blkgs_num<<endl;
+    for (int i = 0; i < blkgs_num; ++i)
+    {
+        Blockage* blk = cell->get_blkg(i);
+        //cout<<"BLK NAME: "<<blk->get_name()<<endl;
+        Pos3d position = blk->get_pos();
+        // int layer_id, row, col;
+        // tie(layer_id, row, col) = blk->get_pos();
+        // cout<<"Layer: "<<layer_id<<", row: "<<row<<", col: "<<col<<endl;
+        gGrid &grid = _chip.get_grid(position);
+        if (!grid.add_demand(-(blk->get_demand())))
+        {
+            cerr<<"ERROR IN GRID DEMAND"<<endl;
+        }
+        // tie(layer_id, row, col) = blk->get_pos();
+        // cout<<"Layer: "<<layer_id<<", row: "<<row<<", col: "<<col<<endl;
+    }
+    return;
+}
+
+void Placement::restore_demand(CellInstance* cell)
 {
     int blkgs_num =  cell->get_num_blkgs();
     for (int i = 0; i < blkgs_num; ++i)
     {
         Blockage* blk = cell->get_blkg(i);
         Pos3d position = blk->get_pos();
-        gGrid &grid = _chip.get_grid(position);
-        if (!grid.add_demand(-(blk->get_demand())))
+        gGrid grid = _chip.get_grid(position);
+        if (!grid.add_demand((blk->get_demand())))
         {
-            cerr<<"ERROR IN GRID DEMAND"<<endl;
+            cerr<<"ERROR IN RESTORE GRID DEMAND"<<endl;
         }
     }
     return;
@@ -133,18 +177,26 @@ bool Placement::another_move(CellInstance* cell, int row, int column)
                 Blockage* blk = cell->get_blkg(blk_id);
                 tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
                 int current_blk_demand = blk -> get_demand();
-                gGrid &grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
                 if(!grid.add_demand(current_blk_demand)){//Add demand, if the grid is full, we should restore all operate
                     cell_supply_sum = INT_MIN;//The row,col is eliminate
-                    for(int i = 0; i < blk_id; i++){ //modify <= to <
-                        Blockage* blk = cell->get_blkg(i); //modify blk_id to i
+                    for(int i = 0; i < blk_id; i++){
+                        Blockage* blk = cell->get_blkg(i);
                         tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
-                        gGrid &grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                        gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
                         if (!grid.add_demand(-(blk->get_demand()))){cerr<<"ERROR IN RESTORE DEMAND"<<endl;}                        
                     }
                     break; 
-                } 
+                }
                 cell_supply_sum += grid.get_remain_supply();
+                if(blk_id == blksgsNum - 1){ //finish a grid should restore, too
+                        for(int blk_id = 0; blk_id < blksgsNum ; blk_id++){
+                            Blockage* blk = cell->get_blkg(blk_id);
+                            tie(layer_id, row_old, col_old) = blk-> get_pos();//old row and old column, I dont care
+                            gGrid grid = _chip.get_grid(Pos3d(layer_id, r, c));
+                        if (!grid.add_demand(-(blk->get_demand()))){cerr<<"ERROR IN RESTORE DEMAND"<<endl;}                        
+                        }
+                }
             }
             if(cell_supply_sum > max_cell_supply_sum){
                 max_cell_supply_sum = cell_supply_sum;
@@ -174,7 +226,11 @@ bool Placement::update_demand(CellInstance* cell, int row, int column)
   history_gain.clear();
   for (int blk_id = 0; blk_id < cell -> get_num_blkgs(); blk_id++){ //All blk cell connected
     Blockage* blk = cell -> get_blkg(blk_id);//get block
+    //cout<<"BLK NAME: "<<blk->get_name()<<endl;
     Pos3d position = blk->get_pos();//find where is the blk
+    // int layer_id, row, col;
+        // tie(layer_id, row, col) = blk->get_pos();
+        // cout<<"Layer: "<<layer_id<<", row: "<<row<<", col: "<<col<<endl;
     gGrid &grid = _chip.get_grid(position);//go to this grid 
     if(!grid.add_demand(blk -> get_demand())){
       for (int i = 0; i < history_gain.size(); ++i)
@@ -185,8 +241,13 @@ bool Placement::update_demand(CellInstance* cell, int row, int column)
     }//update demand in this grid
     history_grid.push_back(&grid);
     history_gain.push_back(blk -> get_demand());
+    // cout<<"Layer: "<<layer_id<<", row: "<<row<<", col: "<<col<<endl;
   }
+  // cout<<"BEFORE: "<<endl;
+  // cell->print();
   cell -> set_pos(row, column);//update cell location
+  // cout<<"AFTER: "<<endl;
+  // cell->print();
   return true;
 } 
 
