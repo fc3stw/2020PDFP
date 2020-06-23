@@ -225,9 +225,9 @@ int main(int argc, char** argv){
 	    	
 	    // }
     }
-	design.print_summary();
+	design.print_summary(true);
 	chip.print_summary();
-	exit(1);
+	// exit(1);
 
 	// initialize placer and router
 	Placement placer(design, chip);

@@ -6,10 +6,11 @@
 
 using namespace std;
 
-#define H 0
-#define V 1
-#define Z 2
-typedef short Direction;
+#define H 'H'
+#define V 'V'
+#define Z 'Z'
+#define NoDir 'N'
+typedef char Direction;
 // placement related
 
 typedef tuple<int, int, int> Pos3d; // layer, row, col
@@ -57,7 +58,9 @@ class Layer{
 public:
 	Layer(string name, int id, Direction dir, int supply, int num_rows, int num_cols);
 
+	string get_name() const;
 	Direction get_dir() const;
+	int get_default_supply() const;
 	gGrid& get_grid(int row, int col);
 };
 
@@ -99,7 +102,9 @@ public:
 	Pin(string name, int id, CellInstance *cell, int layer_id);
 
 	string get_name() const;
+	int get_id() const;
 	Pos3d get_pos() const;
+	CellInstance* get_cell() const;
 	int get_num_nets() const;
 	Net* get_net(int idx);
 
@@ -116,6 +121,7 @@ public:
 	Blockage(string name, int id, CellInstance *cell, int layer_id, int demand);
 
 	string get_name() const;
+	int get_id() const;
 	Pos3d get_pos() const;
 	int get_demand() const;
 };
@@ -124,16 +130,16 @@ class MasterCell{
 	// This is the cell type
 	string _name;
 	int _id;
-	vector<Pin> _pin_list;
-	vector<Blockage> _blkg_list;
+	vector<Pin*> _pin_list;
+	vector<Blockage*> _blkg_list;
 	map<string, int> _pin_name2id;
 public:
 	MasterCell(string name, int id);
 
 	string get_name() const;
 	int get_id() const;
-	vector<Pin>& get_pins();
-	vector<Blockage>& get_blkgs();
+	vector<Pin*>& get_pins();
+	vector<Blockage*>& get_blkgs();
 	int get_pin_by_name(string name) const;
 
 	void set_id(int val);
@@ -269,5 +275,5 @@ public:
 	void add_net(Net *net);
 	void move_cell(int cell_id);
 
-	void print_summary();
+	void print_summary(bool detail);
 };
