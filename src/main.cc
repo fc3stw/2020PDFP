@@ -248,6 +248,7 @@ int main(int argc, char** argv){
 		if(wl==-1){
 			wl = new_wl;
 			cout<<"Initial wire length = "<<wl<<endl;
+			break;
 		}
 		else if(new_wl >= wl) break;
 

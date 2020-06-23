@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <cassert>
 #include <queue>
+#include <iostream>
 
 Route::Route(Pos3d source, Pos3d target)
 {
@@ -46,16 +47,20 @@ bool sort_net_by_hpwl(Net *n1, Net *n2) {return n1->get_hpwl() > n2->get_hpwl();
 
 void Router::routing_flow()
 {
+    cout<<"Rip up all routes\n";
     ripup_all_routes();
+    cout<<"Add net on gGrids with pins\n";
     add_net_on_grids();
 
     // sort net by wl
     sort(_net_list.begin(), _net_list.end(), sort_net_by_hpwl);
 
     // global route: build a Steiner tree for each net
+    cout<<"Global route\n";
     global_route();
 
     // detail route: find a route for each Steiner tree
+    cout<<"Detail route\n";
     detail_route();
 }
 
@@ -95,66 +100,85 @@ void Router::global_route()
 {
     _steiner_trees.clear();
     for(Net *net : _net_list){
+        cout<<"Net #"<<net->get_id()<<endl;
+        
         // build a routing graph for each net
-        RoutingGraph graph;
+        cout<<"Build routing graph"<<endl;
+        RoutingGraph *graph = new RoutingGraph;
         int num_pins = net->get_num_pins();
         for(int pid = 0; pid < num_pins; pid++){
             Pin *pin = net->get_pin(pid);
-            graph.add_vertex(pin->get_pos());
+            graph->add_vertex(pin->get_pos());
         }
         for(int i = 0; i < num_pins-1; i++){
             for(int j = i+1; j < num_pins; j++){
-                graph.add_edge(i, j);
+                graph->add_edge(i, j);
             }
         }
 
         // global route: build minimum spanning tree
+        cout<<"get mst"<<endl;
         GlobalRouter global_router(graph);
         global_router.route();
-        RoutingGraph mst = RoutingGraph(global_router.get_mst(), true);
+        RoutingGraph *mst = new RoutingGraph(global_router.get_mst(), true);
+        global_router.~GlobalRouter();
         
         // compute wl: sum of edge weight
-        int min_wl = mst.get_total_edge_weights();
+        int min_wl = mst->get_total_edge_weights();
 
         // collect candidates for Steiner points
+        cout<<"collect Steiner points"<<endl;
         set<Pos3d> steiner_points = collect_steiner_points(net);
+        cout<<"Run 1-iterative approach to build Steiner tree"<<endl;
         for(Pos3d sp : steiner_points){
             // add a steiner point
-            graph.add_vertex(sp);
-            int num_vertices = graph.get_num_vertices();
+            cout<<"add Steiner point"<<endl;
+            graph->add_vertex(sp);
+            int num_vertices = graph->get_num_vertices();
             for(int i = 0; i < num_vertices-1; i++){
-                graph.add_edge(i, num_vertices-1);
+                graph->add_edge(i, num_vertices-1);
             }
 
             // global route: build minimum spanning tree
-            global_router = GlobalRouter(graph);
+            cout<<"get mst"<<endl;
+            GlobalRouter global_router(graph);
             global_router.route();
-            RoutingGraph new_mst = global_router.get_mst();
+            RoutingGraph *new_mst = new RoutingGraph(global_router.get_mst(), true);
 
             // remove the steiner points if wl doesn't decrease
-            int new_wl = new_mst.get_total_edge_weights();
+            int new_wl = new_mst->get_total_edge_weights();
             if(new_wl < min_wl){
+                cout<<"update mst"<<endl;
+                delete mst;
                 mst = new_mst;
                 min_wl = new_wl;
             }
             else{
-                int last_vertex_id = graph.get_num_vertices()-1;
-                graph.remove_vertex(last_vertex_id);
+                cout<<"remove Steiner point"<<endl;
+                delete new_mst;
+                int last_vertex_id = graph->get_num_vertices()-1;
+                graph->remove_vertex(last_vertex_id);
             }
 
             // remove redundant steiner points
-            num_vertices = mst.get_num_vertices();
+            cout<<"remove redundant Steiner point"<<endl;
+            num_vertices = mst->get_num_vertices();
             for(int sid = num_pins; sid < num_vertices; sid++){
-                int vertex_degree = graph.get_vertex(sid)->get_edges().size();
+                cout<<"test steiner point"<<endl;
+                int vertex_degree = graph->get_vertex(sid)->get_edges().size();
                 // redundant steiner point if degree < 3
-                if(vertex_degree < 3) graph.remove_vertex(sid);
+                if(vertex_degree < 3){
+                    cout<<"found redundant steiner point"<<endl;
+                    graph->remove_vertex(sid);
+                }
             }
         }
+        delete graph;
 
         // add net id to the corresponding gGrid of steiner points
-        int num_vertices = mst.get_num_vertices();
+        int num_vertices = mst->get_num_vertices();
         for(int sid = num_pins; sid < num_vertices; sid++){
-            Pos3d pos = mst.get_vertex(sid)->get_pos();
+            Pos3d pos = mst->get_vertex(sid)->get_pos();
             _chip.get_grid(pos).add_net(net->get_id());
         }
         _steiner_trees.push_back(mst);
@@ -166,13 +190,13 @@ void Router::detail_route()
     int num_nets = _net_list.size();
     for(int net_id = 0; net_id < num_nets; net_id++){
         Net *net = _net_list.at(net_id);
-        RoutingGraph &graph = _steiner_trees.at(net_id);
+        RoutingGraph *graph = _steiner_trees.at(net_id);
 
         // find a route for each edge on the steiner tree
         set<Pos3d> net_route;
-        int num_edges = graph.get_num_edges();
+        int num_edges = graph->get_num_edges();
         for(int edge_id = 0; edge_id < num_edges; edge_id++){
-            Edge *edge = graph.get_edge(edge_id);
+            Edge *edge = graph->get_edge(edge_id);
             Pos3d source = edge->get_v1()->get_pos();
             Pos3d target = edge->get_v2()->get_pos();
             Route *edge_route = Astar_search(net_id, source, target);

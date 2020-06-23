@@ -1,17 +1,26 @@
 #include "routingGraph.h"
 #include <cmath>
 #include <algorithm>
+#include <cassert>
+#include <iostream>
 
-RoutingGraph::RoutingGraph(const RoutingGraph &input_graph, bool vertex_only)
+RoutingGraph::RoutingGraph()
 {
-    int num_vertices = input_graph.get_num_vertices();
+    _vertex_list.clear();
+    _edge_list.clear();
+}
+
+RoutingGraph::RoutingGraph(const RoutingGraph *input_graph, bool vertex_only)
+{
+    int num_vertices = input_graph->get_num_vertices();
     for(int i = 0; i<num_vertices; i++){
-        add_vertex(input_graph.get_vertex(i)->get_pos());
+        add_vertex(input_graph->get_vertex(i)->get_pos());
     }
-    if(vertex_only) return;
-    int num_edges = input_graph.get_num_edges();
-    for(int i = 0; i<num_edges; i++){
-        add_edge(input_graph.get_edge(i)->get_v1()->get_id(), input_graph.get_edge(i)->get_v2()->get_id());
+    if(!vertex_only){
+        int num_edges = input_graph->get_num_edges();
+        for(int i = 0; i<num_edges; i++){
+            add_edge(input_graph->get_edge(i)->get_v1()->get_id(), input_graph->get_edge(i)->get_v2()->get_id());
+        }
     }
 }
 
@@ -50,6 +59,8 @@ void RoutingGraph::add_vertex(Pos3d pos)
 
 void RoutingGraph::add_edge(int v1, int v2)
 {
+    assert(v1 < get_num_vertices() && v1 >= 0);
+    assert(v2 < get_num_vertices() && v2 >= 0);
     int id = _edge_list.size();
     int z1, x1, y1;
     int z2, x2, y2;
@@ -71,13 +82,17 @@ void RoutingGraph::remove_vertex(int id)
             edge_to_remove.push_back(e->get_id());
         }
     }
-    for(int edge_id : edge_to_remove){
-        remove_edge(edge_id);
+
+    // remove edges in reversed order
+    for(int i = edge_to_remove.size()-1; i >= 0; i--){
+        remove_edge(edge_to_remove.at(i));
     }
+    
     // remove vertex
     Vertex *v = _vertex_list.at(id);
     delete v;
     _vertex_list.erase(_vertex_list.begin() + id);
+
     // fix vertex index
     int new_id = 0;
     for(Vertex *v : _vertex_list){
@@ -103,6 +118,19 @@ void RoutingGraph::remove_edge(int id) {
     for(Edge *e : _edge_list){
         e->set_id(new_id);
         new_id++;
+    }
+}
+
+void RoutingGraph::print() const
+{
+    cout<<"#vertices: "<<get_num_vertices()<<"\n";
+    for(Vertex *v : _vertex_list){
+        cout<<"  #"<<v->get_id()<<" ";
+    }
+    cout<<"\n";
+    cout<<"#edges: "<<get_num_edges()<<"\n";
+    for(Edge *e : _edge_list){
+        cout<<"  #"<<e->get_id()<<" "<<e->get_v1()->get_id()<<"->"<<e->get_v2()->get_id()<<"\n";
     }
 }
 

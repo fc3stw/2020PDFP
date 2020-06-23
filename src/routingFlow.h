@@ -20,7 +20,7 @@ struct SortRouteByCost{
 class Router{
     Chip &_chip;
     vector<Net*> _net_list;
-    vector<RoutingGraph> _steiner_trees;
+    vector<RoutingGraph*> _steiner_trees;
 public:
     Router(Chip &chip, vector<Net*> &net_list);
 

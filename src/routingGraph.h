@@ -13,8 +13,8 @@ class RoutingGraph{
     vector<Vertex*> _vertex_list;
     vector<Edge*> _edge_list;
 public:
-    RoutingGraph(){}
-    RoutingGraph(const RoutingGraph &input_graph, bool vertex_only);
+    RoutingGraph();
+    RoutingGraph(const RoutingGraph *input_graph, bool vertex_only);
     ~RoutingGraph();
 
     int get_num_vertices() const;
@@ -28,6 +28,8 @@ public:
     void add_edge(int v1, int v2);
     void remove_vertex(int id);
     void remove_edge(int id);
+
+    void print() const;
 };
 
 class Vertex{
