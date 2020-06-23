@@ -225,7 +225,7 @@ int main(int argc, char** argv){
 	    	
 	    // }
     }
-	design.print_summary(true);
+	design.print_summary(false);
 	chip.print_summary();
 	// exit(1);
 
@@ -241,21 +241,35 @@ int main(int argc, char** argv){
 
 	placer.reset_demand();
 	placer.set_HPWL_for_nets();
+	int hpwl;
 	int wl = -1;
-	while(true){
+	int iter = 0;
+	while(iter < 10){
+		placer.reset_demand();
+		placer.set_HPWL_for_nets();
+		
+		hpwl = router.get_total_hpwl();
 		router.routing_flow();
 		int new_wl = router.get_total_wl();
 		if(wl==-1){
 			wl = new_wl;
 			cout<<"Initial wire length = "<<wl<<endl;
+			// break;
 		}
-		else if(new_wl >= wl) break;
+		else if(new_wl < wl){
+			wl = new_wl;
+			cout<<"wire length decreases"<<endl;
+		}
+		cout<<"Total HPWL = "<<hpwl<<endl;
+		cout<<"wire length = "<<new_wl<<endl;
 
 		placer.set_HPWL_for_cells();
 		bool move_success = placer.move_cell();
 		if(!move_success){
 			break;
 		}
+
+		iter++;
 	}
 	cout<<"Final wire length = "<<wl<<endl;
 

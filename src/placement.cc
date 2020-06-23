@@ -41,20 +41,21 @@ void Placement::set_HPWL_for_cells()
         CellInstance* cell = _design.get_cell_by_id(cell_id);
         set<Net*> nets_on_cell;
         for(int pin_id = 0 ; pin_id < cell -> get_num_pins(); pin_id++){
-           Pin* pin = cell -> get_pin(pin_id);
-           for(int net_id = 0; net_id < pin -> get_num_nets(); net_id++){
-                nets_on_cell.insert(pin -> get_net(net_id));
-           }  
+            Pin* pin = cell -> get_pin(pin_id);
+            for(int net_id = 0; net_id < pin -> get_num_nets(); net_id++){
+                    nets_on_cell.insert(pin -> get_net(net_id));
+            }
         }
         int cellinstance_HPWL = 0;
         for(Net *net : nets_on_cell){
-           cellinstance_HPWL += net -> get_hpwl(); 
+            cellinstance_HPWL += net -> get_hpwl(); 
+            // cellinstance_HPWL += net -> get_route().size(); 
         }
         cell -> set_hpwl_cost(cellinstance_HPWL);
         cell_cost_list.push_back(pair<int, int>(cellinstance_HPWL, cell_id));
     }
     sort(cell_cost_list.begin(), cell_cost_list.end());
-      int totalcost = 0;
+    int totalcost = 0;
     for (auto pos: cell_cost_list)
     {
       totalcost += pos.first;
@@ -64,13 +65,17 @@ void Placement::set_HPWL_for_cells()
 }
 bool Placement::move_cell()
 {
+    // random_shuffle(cell_cost_list.begin(), cell_cost_list.end());
     vector<pair<int, int> >::reverse_iterator iter;
     for (iter = cell_cost_list.rbegin(); iter != cell_cost_list.rend(); iter++)
+    // vector<pair<int, int> >::iterator iter;
+    // for (iter = cell_cost_list.begin(); iter != cell_cost_list.end(); iter++)
     {
        int id = iter->second;//cell_id
        CellInstance* current_cell = _design.get_cell_by_id(id);
        //cout<<"CELL ID: "<<current_cell->get_id()<<endl;
        if(current_cell->is_fixed()) continue;
+       if(_design.cell_is_moved(current_cell->get_id())) continue;
        minus_demand(current_cell);
        //Process one cell new position use zero force
        int layer_id = 0;

@@ -3,6 +3,15 @@
 
 // class gGrid
 
+string get_pos_str(Pos3d pos)
+{
+    string pos_str;
+	int z, x ,y;
+    tie(z, x, y) = pos;
+    pos_str = "(" + to_string(z) + "," + to_string(x) + "," + to_string(y) + ")";
+	return pos_str;
+}
+
 gGrid::gGrid(int layer, int row, int col, int supply):
 	_pos(layer, row, col),
 	_supply(supply),
@@ -334,7 +343,7 @@ void Net::add_pin(Pin *pin)
 
 void Net::add_route(Pos3d pos) {_route.push_back(pos);}
 
-void Net::print()
+void Net::print() const
 {
     cout<<"Net #"<<get_id()<<" "<<get_name()<<", #pins="<<get_num_pins()<<"\n";
     for(Pin *pin : _pins){
