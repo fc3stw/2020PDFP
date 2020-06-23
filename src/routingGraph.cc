@@ -38,9 +38,17 @@ int RoutingGraph::get_num_vertices() const {return _vertex_list.size();}
 
 int RoutingGraph::get_num_edges() const {return _edge_list.size();}
 
-Vertex* RoutingGraph::get_vertex(int id) const {return _vertex_list.at(id);}
+Vertex* RoutingGraph::get_vertex(int id) const
+{
+    assert(id < get_num_vertices() && id >= 0);
+    return _vertex_list.at(id);
+}
 
-Edge* RoutingGraph::get_edge(int id) const {return _edge_list.at(id);}
+Edge* RoutingGraph::get_edge(int id) const
+{
+    assert(id < get_num_edges() && id >= 0);
+    return _edge_list.at(id);
+}
 
 int RoutingGraph::get_total_edge_weights() const
 {
@@ -75,6 +83,8 @@ void RoutingGraph::add_edge(int v1, int v2)
 
 void RoutingGraph::remove_vertex(int id)
 {
+    assert(id < get_num_vertices() && id >= 0);
+    
     // remove edges related to the vertex
     vector<int> edge_to_remove;
     for(Edge *e : _edge_list){
@@ -90,8 +100,8 @@ void RoutingGraph::remove_vertex(int id)
     
     // remove vertex
     Vertex *v = _vertex_list.at(id);
-    delete v;
     _vertex_list.erase(_vertex_list.begin() + id);
+    delete v;
 
     // fix vertex index
     int new_id = 0;

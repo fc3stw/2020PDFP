@@ -5,7 +5,7 @@
 #include <iostream>
 #include <cassert>
 
-GlobalRouter::GlobalRouter(const RoutingGraph *original_graph)
+GlobalRouter::GlobalRouter(RoutingGraph const *original_graph)
 {
 	_original_graph = new RoutingGraph(original_graph, false);
 	_mst = new RoutingGraph(original_graph, true);
@@ -13,8 +13,8 @@ GlobalRouter::GlobalRouter(const RoutingGraph *original_graph)
 
 GlobalRouter::~GlobalRouter()
 {
-	delete _original_graph;
-	delete _mst;
+	// if(_original_graph) delete _original_graph;
+	// if(_mst) delete _mst;
 }
 
 RoutingGraph* GlobalRouter::get_mst() const {return _mst;}
@@ -22,6 +22,18 @@ RoutingGraph* GlobalRouter::get_mst() const {return _mst;}
 bool compare(const Edge *e1, const Edge *e2)
 {
 	return e1->get_weight() < e2->get_weight();
+}
+
+void GlobalRouter::set_graph(RoutingGraph const *original_graph)
+{
+	_original_graph = new RoutingGraph(original_graph, false);
+	_mst = new RoutingGraph(original_graph, true);
+}
+
+void GlobalRouter::clear_graph()
+{
+	delete _original_graph;
+	delete _mst;
 }
 
 void GlobalRouter::route()

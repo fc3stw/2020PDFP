@@ -241,6 +241,8 @@ int main(int argc, char** argv){
 
 	placer.reset_demand();
 	placer.set_HPWL_for_nets();
+	int hpwl = router.get_total_hpwl();
+	cout<<"Total HPWL = "<<hpwl<<endl;
 	int wl = -1;
 	while(true){
 		router.routing_flow();

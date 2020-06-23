@@ -204,7 +204,7 @@ public:
 	void add_pin(Pin *pin); // remember to add net pin on gGrid
 	void add_route(Pos3d pos);
 	
-	void print();
+	void print() const;
 };
 
 class CellLibrary{
@@ -277,3 +277,6 @@ public:
 
 	void print_summary(bool detail);
 };
+
+string get_pos_str(Pos3d pos);
+
