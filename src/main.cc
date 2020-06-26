@@ -244,7 +244,7 @@ int main(int argc, char** argv){
 	int hpwl;
 	int wl = -1;
 	int iter = 0;
-	while(iter < 10){
+	while(iter < 100){
 		placer.reset_demand();
 		placer.set_HPWL_for_nets();
 		
@@ -253,7 +253,7 @@ int main(int argc, char** argv){
 		int new_wl = router.get_total_wl();
 		if(wl==-1){
 			wl = new_wl;
-			cout<<"Initial wire length = "<<wl<<endl;
+			cout<<"Initial wire length = "<<wl<<endl<<endl;
 			// break;
 		}
 		else if(new_wl < wl){
@@ -261,7 +261,7 @@ int main(int argc, char** argv){
 			cout<<"wire length decreases"<<endl;
 		}
 		cout<<"Total HPWL = "<<hpwl<<endl;
-		cout<<"wire length = "<<new_wl<<endl;
+		cout<<"wire length = "<<new_wl<<endl<<endl;
 
 		placer.set_HPWL_for_cells();
 		bool move_success = placer.move_cell();

@@ -61,7 +61,7 @@ void Placement::set_HPWL_for_cells()
       totalcost += pos.first;
       //cout<<"Cost: "<<pos.first<<", Cell ID: "<<pos.second<<endl;
     }
-    cout<<"TOTAL: "<<totalcost<<endl;
+    // cout<<"TOTAL: "<<totalcost<<endl;
 }
 bool Placement::move_cell()
 {

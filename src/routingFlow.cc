@@ -77,12 +77,12 @@ void Router::routing_flow()
     // random_shuffle(_net_list.begin(), _net_list.end());
 
     // global route: build a Steiner tree for each net
-    cout<<"Global route\n";
+    // cout<<"Global route\n";
     global_route();
     // print_global_route_result();
 
     // detail route: find a route for each Steiner tree
-    cout<<"Detail route\n";
+    // cout<<"Detail route\n";
     detail_route();
     // print_detail_route_result();
 }
