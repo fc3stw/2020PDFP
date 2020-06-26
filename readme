@@ -1,0 +1,5 @@
+Compile:
+'make' under program folder
+
+run:
+bin/cell_move_router <testcase>
